@@ -11,14 +11,10 @@
     ];
 
   # Bootloader.
-  boot.loader.grub.enable = true;
-  boot.loader.grub.device = "/dev/sda";
-  boot.loader.grub.useOSProber = true;
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
 
-  # Use latest kernel.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "hades"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -26,9 +22,10 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
-  #services.connman.enable = true;
   networking.networkmanager.enable = true;
 
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
 
   # Set your time zone.
   time.timeZone = "Europe/Madrid";
@@ -48,15 +45,19 @@
     LC_TIME = "es_ES.UTF-8";
   };
 
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
 
-  # Enable the Enlightenment Desktop Environment.
-  services.xserver.displayManager.lightdm.enable = true;
-  services.xserver.desktopManager.enlightenment.enable = true;
+  # desactivar si estamos en wayland
+  services.xserver.enable = false;
+  services.displayManager.sddm.wayland.enable = true;
 
-  # Enable acpid
-  services.acpid.enable = true;
+  services.displayManager.sddm.enable = true;
+
+  services.seatd.enable = true;
+  #services.blueman.enable = true;
+  services.dbus.enable = true;
+
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -67,46 +68,23 @@
   # Configure console keymap
   console.keyMap = "es";
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
-  # Enable sound with pipewire.
-  services.pulseaudio.enable = false;
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
-  };
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.wizord = {
     isNormalUser = true;
-    description = "wizord";
-    shell = pkgs.zsh;
-    extraGroups = [ "bluetooth" "networkmanager" "wheel" "docker"];
+    description = "David López";
+    extraGroups = [ "networkmanager" "wheel" "input" "video" "seat" "docker"];
     packages = with pkgs; [
-    #  thunderbird
     ];
   };
 
-virtualisation.docker.enable = true;
+  virtualisation.docker.enable = true;
 
-  # Install firefox.
-  programs.firefox.enable = true;
-  programs.hyprland.enable = true;
+  #programs.hyprland.enable = true;
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+  };
   programs.zsh.enable = true;
-
 
 
   # Allow unfree packages
@@ -114,63 +92,58 @@ virtualisation.docker.enable = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
+  environment.systemPackages = with pkgs; [
+	brightnessctl
+	git
+	kitty
+	ranger
+	tig
+	bat
+	ripgrep
+	cmus
+	fd
+	procs
+	wget
+	htop
+	fastfetch
+	libnotify
+	
+	hyprshot
+	hyprlock
 
-environment.systemPackages = with pkgs; [
-  # Terminal y herramientas de línea
-  zsh
-  kitty
-  ranger
-  tig
-  git
-  bat
-  ripgrep
-  cmus
-  fd
-  procs
-  wget
-  yt-dlp
-  grim            # Screenshots
-  slurp           # Seleccionar área para screenshot
-  swappy          # Editor de capturas
+	# Apps
+	brave
+	firefox	
+	# wayland
+	waybar
+	wlogout
+	fuzzel
+	mako
+	blueman
+	pavucontrol
+	blueman
+	#xfce.thunar
+	#gvfs
 
-  # Wayland y entorno gráfico
-  waybar
-  fuzzel
-  #eww
-  mako
-  networkmanagerapplet
-  wl-clipboard
-  pavucontrol
-  blueman
+	#audio	
+	pipewire
+	wireplumber
+	bluez
+	bluez-tools
 
-  # vpn para conf proton
-  openvpn
-  networkmanager
-  networkmanager-openvpn
+	# multimeda
+	vlc
+	obs-studio
+	minidlna	
+	radiotray-ng
 
-  # Audio
-  pipewire
-  wireplumber
-
-  # multimedia
-  vlc
-  transmission_3-gtk
-  obs-studio
-  minidlna
-
-  # desarrollo
-  meld
-  vscode-fhs
-  # code
-  neovim
-  docker
-
-  # otros
-  calibre
-  klavaro
-];
-
-
+	# desarrollo
+  	meld
+  	vscode-fhs
+  	# code
+  	neovim
+  	docker
+  ];
 
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -191,48 +164,6 @@ environment.systemPackages = with pkgs; [
       PasswordAuthentication = true;
     };
   };
-# Para GUI de Bluetooth
-services.blueman.enable = true;
-
-services.minidlna = {
-  enable = true;
-  settings = {
-    media_dir = [ "/mnt/media" ];  # Ajusta la ruta a donde tengas tus vídeos, música o fotos
-    friendly_name = "Mi DLNA Server";
-    inotify = "yes";
-    notify_interval = 900;
-    port = 8200;
-network_interface = "ens18";
-  };
-};
-
-services.transmission = {
-  enable = true;
-  settings = {
-    rpc-enabled = true;
-    rpc-port = 9091;
-    rpc-whitelist-enabled = false; # cuidado con seguridad
-    download-dir = "/home/wizord/Torrents";
-  };
-};
-
-
-
-networking.useDHCP = false;
-
-networking.interfaces.ens18.useDHCP = false;
-
-networking.interfaces.ens18.ipv4.addresses = [{
-  address = "192.168.1.10";  # ← cambia esto según tu red
-  prefixLength = 24;          # 255.255.255.0
-}];
-
-networking.defaultGateway = "192.168.1.1";  # ← cambia si tu router usa otra IP
-networking.nameservers = [ "192.168.1.194" "1.0.0.1" "8.8.8.8" ];  # Cloudflare y Google DNS
-
-networking.networkmanager.dns = "none"; # evita que use DHCP para los DNS
-
-
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
