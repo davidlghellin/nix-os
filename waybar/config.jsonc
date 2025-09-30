@@ -8,27 +8,102 @@
 
     // Load Modules
     "include": [
-        "~/.config/ml4w/settings/waybar-quicklinks.json",
         "~/.config/waybar/modules.json"
     ],    
     "modules-left": [
-        "custom/appmenu",
-        "hyprland/workspaces",
-        "group/quicklinks"
+        "custom/appmenu"
+	,"clock"
+        ,"hyprland/workspaces"
     ],
     "modules-center": [
         "hyprland/window"
     ],
     "modules-right": [
         "mpd", 
-        "pulseaudio", 
         "network", 
         "cpu", 
         "memory", 
-        "keyboard-state", 
+	"backlight",
+        "pulseaudio", 
         "battery", 
         "tray",
-        "custom/exit",
-        "clock"
-    ]
+	"idle_inhibitor",
+        "custom/exit"
+    ],
+    "battery": {
+      "interval": 15,
+      "format": "{icon}  {capacity}%",
+      "format-charging": "  {capacity}%",
+      "format-plugged": "  {capacity}%",
+      "format-alt": "{time}",
+      "states": { "warning": 20, "critical": 10 },
+      "format-icons": ["","","","",""],
+      // Si Waybar no detecta tu batería, especifica el nombre (BAT0/BAT1...)
+      // "bat": "BAT0",
+      // "adapter": "AC"
+      "tooltip": true
+    },
+    "pulseaudio": {
+      "scroll-step": 5,
+      "format": "{icon}  {volume}%",
+      "format-muted": " 0%",
+      "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+      "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ +5%",
+      "on-scroll-down": "pactl set-sink-volume @DEFAULT_SINK@ -5%",
+      "format-icons": {
+        "default": ["", "", ""]
+      }
+    }
+,"clock": { "interval": 1, "format": "{:%R}" }
+
+
+,"network": {
+  "interval": 3,
+  // "interface": "wlp2s0", // <- opcional si Waybar no detecta bien
+  "format-wifi": "{signalStrength}%  ↓{bandwidthDownBits} ↑{bandwidthUpBits}",
+  "format-ethernet": "󰈀 {ipaddr}",
+  "format-linked": "󰈁 {ifname}",
+  "format-disconnected": "󰤭",
+  "tooltip-format": "{ifname} · {essid}\nIP: {ipaddr}\nGateway: {gwaddr}\nUp: {bandwidthUpBits}\nDown: {bandwidthDownBits}",
+  // Click: abrir editor de conexiones (GUI de NetworkManager)
+  "on-click": "nm-connection-editor",
+  // Scroll: re-escaneo rápido de redes
+  "on-scroll-up": "nmcli device wifi rescan",
+  "on-scroll-down": "nmcli device wifi rescan"
 }
+,"cpu": {
+  "interval": 3,
+  "format": " {usage}%",
+  "max-length": 30,
+  "states": { "warning": 75, "critical": 90 },
+  "on-click": "btop"   // abre tu monitor favorito; cámbialo si quieres
+},
+
+"memory": {
+  "interval": 5,
+  "format": " {percentage}%",
+  "max-length": 30,
+  "states": { "warning": 75, "critical": 90 },
+  "on-click": "btop"
+}
+
+,"backlight": {
+  "device": "intel_backlight", // a veces es "amdgpu_bl0" o "acpi_video0"
+  "format": "  {percent}%",
+  "on-scroll-up": "brightnessctl set +5%",
+  "on-scroll-down": "brightnessctl set 5%-",
+  "tooltip-format": "Brillo: {percent}%"
+}
+,"custom/cliphist": {
+  "interval": 5,
+  "exec": "cliphist list | head -n 1 | cut -c1-30", // muestra el último recorte
+  "on-click": "cliphist list | fuzzel | cliphist decode | wl-copy",
+  "tooltip": true,
+  "tooltip-format": "Historial de portapapeles"
+}
+
+
+}
+
+
+

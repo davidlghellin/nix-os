@@ -1,0 +1,86 @@
+[
+	{
+		"group" : "Country",
+		"stations" : 
+		[
+			{
+				"name" : "Boot Liquor",
+				"url" : "http://somafm.com/bootliquor.pls"
+			},
+			{
+				"name" : "Highway 181",
+				"url" : "http://www.181.fm/winamp.pls?station=181-highway&file=181-highway.pls"
+			},
+			{
+				"name" : "Country 108",
+				"url" : "http://www.country108.com/listen.pls"
+			},
+			{
+				"name" : "WAMU Bluegrass Country",
+				"url" : "http://ice24.securenetsystems.net/WAMU2"
+			}
+		]
+	},
+	{
+		"group" : "Techno / Electronic",
+		"stations" : 
+		[
+			{
+				"name" : "Drone Zone",
+				"url" : "http://somafm.com/dronezone.pls"
+			},
+			{
+				"name" : "Space Station Soma",
+				"url" : "http://somafm.com/spacestation.pls"
+			},
+			{
+				"name" : "cliqhop idm",
+				"url" : "http://somafm.com/cliqhop.pls"
+			},
+			{
+				"name" : "Black Rock FM",
+				"url" : "http://somafm.com/brfm.pls"
+			},
+			{
+				"name" : "New Dance Radio",
+				"url" : "http://jbstream.net/tunein.php/blackoutworm/playlist.asx"
+			},
+			{
+				"name" : "DubStep Beyond",
+				"url" : "http://somafm.com/play/dubstep32"
+			}
+		]
+	},
+	{
+		"group" : "Community",
+		"stations" : 
+		[
+			{
+				"name" : "Jupiter Broadcasting",
+				"url" : "http://jblive.stream/"
+			}
+		]
+	},
+	{
+		"group" : "root",
+		"stations" : []
+	},
+	{
+		"group" : "trance",
+		"stations" : 
+		[
+			{
+				"name" : "http://strm112.1.fm/trance_128",
+				"url" : "http://strm112.1.fm/trance_128"
+			},
+			{
+				"name" : "http://strm112.1.fm/atr_128",
+				"url" : "http://strm112.1.fm/atr_128"
+			},
+			{
+				"name" : "http://1a-dance.radionetz.de/1a-dance.mp3",
+				"url" : "http://1a-dance.radionetz.de/1a-dance.mp3"
+			}
+		]
+	}
+]

@@ -14,7 +14,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "hades"; # Define your hostname.
+  #networking.hostName = "hades"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -22,7 +22,13 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
-  networking.networkmanager.enable = true;
+networking = {
+  hostName = "hades";
+  networkmanager.enable = true;
+#  nameservers = [ "192.168.1.184" "1.1.1.1" "8.8.8.8" ];  # Se usarán en ese orden
+#  resolvconf.enable = true;
+#  networkmanager.dns = "none";  # ¡Importante! para que no sobreescriba tus DNS
+};
 
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
@@ -48,6 +54,17 @@
 
   # desactivar si estamos en wayland
   services.xserver.enable = false;
+  # envidia driver -> puede que más consumo y ventilador
+  #services.xserver.enable = true;
+  #services.xserver.videoDrivers = [ "nvidia" ];
+  #hardware.nvidia = {
+  #  modesetting.enable = true;
+  #  powerManagement.enable = true; # suspende/resume correcto
+  #  open = false;                  # usa driver propietario en vez del open kernel module
+  #  nvidiaSettings = true;         # panel de control nvidia-settings
+  #};
+
+
   services.displayManager.sddm.wayland.enable = true;
 
   services.displayManager.sddm.enable = true;
@@ -65,6 +82,9 @@
     variant = "";
   };
 
+# actualizar BIOS vía servicio
+#services.fwupd.enable = true;
+
   # Configure console keymap
   console.keyMap = "es";
 
@@ -72,6 +92,7 @@
   users.users.wizord = {
     isNormalUser = true;
     description = "David López";
+#    shell = pkgs.zsh; 
     extraGroups = [ "networkmanager" "wheel" "input" "video" "seat" "docker"];
     packages = with pkgs; [
     ];
@@ -84,7 +105,39 @@
     enable = true;
     xwayland.enable = true;
   };
-  programs.zsh.enable = true;
+
+# Permite zsh como shell de login
+environment.shells = with pkgs; [ zsh ];
+
+
+programs.thunar.enable = true;
+
+# Zsh + oh-my-zsh (todo declarativo)
+programs.zsh = {
+  enable = true;
+
+  # Extras útiles
+  autosuggestions.enable = true;
+  syntaxHighlighting.enable = true;
+
+  ohMyZsh = {
+    enable = true;
+    theme = "agnoster"; # "robbyrussell";   # cambia a "agnoster" o el que te guste
+    plugins = [ "git" "docker" "kubectl" "sudo"];
+  };
+
+};
+fonts.packages = with pkgs; [
+  nerd-fonts.jetbrains-mono
+  nerd-fonts.fira-code
+  # o nerd-fonts.meslo-lg si prefieres Meslo
+];
+
+# Haz zsh la shell por defecto de tu usuario
+users.users.wizord.shell = pkgs.zsh;
+
+nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
 
 
   # Allow unfree packages
@@ -97,54 +150,125 @@
 	git
 	kitty
 	ranger
+	yazi
 	tig
-	bat
-	ripgrep
 	cmus
-	fd
+	fzf
 	procs
 	wget
 	htop
+	nitch
 	fastfetch
-	libnotify
-	
+	streamripper
+
+	libnotify	
+	waybar
+	wlogout
 	hyprshot
 	hyprlock
+	rofi-wayland
+	swww
+	hypridle
+
+lsof
+        wl-clipboard
+#	cliphist
+#lm_sensors
 
 	# Apps
 	brave
 	firefox	
 	# wayland
-	waybar
-	wlogout
 	fuzzel
-	mako
-	blueman
+	swaynotificationcenter
+	# mako # notificaicoens simple
 	pavucontrol
 	blueman
-	#xfce.thunar
 	#gvfs
 
-	#audio	
-	pipewire
-	wireplumber
+	# Alternativas Rust
+	httpie
+	xh
+	dysk
+	bat
+	eza
+	ripgrep
+	fd
+	btop
+
+
+	# Audio	
 	bluez
 	bluez-tools
+	pipewire
+	wireplumber
 
-	# multimeda
-	vlc
-	obs-studio
+	# Multimeda
 	minidlna	
+	mpv
+	obs-studio
 	radiotray-ng
+	vlc
+	yt-dlp
+	telegram-desktop
+	pulseaudio
+	
+	# otras
+	calibre
+	vesktop
 
 	# desarrollo
+	dbeaver-bin
+  	docker
   	meld
+  	neovim
   	vscode-fhs
   	# code
-  	neovim
-  	docker
-  ];
+	zathura
+	obsidian
+	glogg
+	klavaro
 
+	gcc	
+	openssl
+	cacert
+	pkg-config
+	rustc
+	rustup
+	cargo
+	protobuf
+	python311
+	lldb
+	rust-analyzer
+
+
+	protonvpn-gui
+	protonmail-desktop
+	proton-pass
+
+  #protonmail-bridge
+  #libappindicator
+
+  xorg.xcursorthemes
+  adwaita-icon-theme
+
+
+  ];
+environment.variables = {
+  XCURSOR_THEME = "Bibata-Modern-Ice";
+  XCURSOR_SIZE  = "24";
+};
+
+services.udev.packages = [ pkgs.calibre ];
+
+
+  # config para sail
+  environment.variables = {
+    OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
+    OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+    PYTHON = "${pkgs.python311}/bin/python3";
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -165,11 +289,41 @@
     };
   };
 
+
+services.minidlna = {
+  enable = true;
+  settings = {
+#    media_dir = [ "V,/home/wizord/Torrents" ];  # V: vídeo, A: audio, P: fotos
+    media_dir = [ "V,/mnt/multimedia" ];  # V: vídeo, A: audio, P: fotos
+    friendly_name = "Mi DLNA Server";
+    inotify = "yes";
+    notify_interval = 900;
+    port = 8200;
+    network_interface = "wlp2s0";
+  };
+};
+
+users.users.minidlna = {
+    extraGroups =
+      [ "users" "wizord" ]; # so minidlna can access the files.
+  };
+
+
+networking.firewall = {
+  enable = false;
+  allowedTCPPorts = [ 51413  9091  8200 ]; # minidlna y transmission
+  allowedUDPPorts = [ 51413 ];
+  #allowedUDPPorts = [ 1900 ];      # SSDP de DLNA
+};
+
+
+  # networking.firewall.allowedTCPPorts = [ 8200 ];
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
