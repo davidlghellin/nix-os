@@ -12,7 +12,8 @@
   "modules-left": [
     "custom/appmenu",
     "clock",
-    "hyprland/workspaces"
+    "hyprland/workspaces",
+    "custom/containers" 
   ],
   "modules-center": [
     "hyprland/window"
@@ -132,5 +133,13 @@
     },
     "tooltip": true,
     "tooltip-format": "{status}"
+  },
+  "custom/containers": {
+    "exec": "~/.config/waybar/scripts/containers.sh",
+    "interval": 5,
+    "return-type": "json",
+    "tooltip": true,
+    "on-click": "kitty -e bash -lc 'command -v docker >/dev/null && docker ps || podman ps; read -n1'"
   }
+
 }
