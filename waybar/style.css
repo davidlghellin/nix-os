@@ -17,7 +17,7 @@ window#waybar { background-color: @barbg; }
 
 /* --- cápsula común verde (unifica estilo) --- */
 #battery, #pulseaudio, #network, #cpu, #memory, #clock, #backlight,
-#custom-appmenu, #custom-cliphist, #custom-hotkeys, #custom-vpn {
+#custom-appmenu, #custom-cliphist, #custom-hotkeys, #custom-vpn, #weather {
   background-color: transparent;
   color: @green;
   border: 2px solid @green;
@@ -151,6 +151,15 @@ window#waybar.empty #window { background-color: transparent; }
   font-size: 16px;
 }
 
+#custom-weather {
+  background: transparent;
+  color: @green;
+  border: 2px solid @green;
+  border-radius: 6px;
+  padding: 2px 12px 0 10px;
+  margin: 3px 15px 3px 0;
+  font-size: 16px;
+}
 /* Estados del mic */
 #custom-mic.recording { color: @yellow; border-color: @yellow; } /* grabando */
 #custom-mic.muted     { color: @red;    border-color: @red; }    /* mute */

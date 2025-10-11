@@ -28,6 +28,7 @@
     "backlight",
     "pulseaudio",
     "battery",
+    "custom/weather",
     "tray",
     "custom/lock",
     "custom/exit"
@@ -155,5 +156,12 @@
     "interval": 3,
     "return-type": "json",
     "tooltip": true
-  }
+  },
+  "custom/weather": {
+    "exec": "bash ~/.config/waybar/scripts/wittr.sh",
+    "return-type": "json",
+    "format": "{}",
+    "tooltip": true,
+    "interval": 900
+  },
 }
