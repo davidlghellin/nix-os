@@ -129,6 +129,37 @@ window#waybar.empty #window { background-color: transparent; }
   font-size: 16px;
 }
 
+#custom-containers {
+  background: transparent;
+  color: @green;
+  border: 2px solid @green;
+  border-radius: 6px;
+  padding: 2px 12px 0 10px;
+  margin: 3px 15px 3px 0;
+  font-size: 16px;
+}
+#custom-containers.starting { color: @yellow; border-color: @yellow; }
+#custom-containers.off      { color: @grey;   border-color: @grey;   }
+
+#custom-mic, #custom-cam {
+  background: transparent;
+  color: @green;
+  border: 2px solid @green;
+  border-radius: 6px;
+  padding: 2px 12px 0 10px;
+  margin: 3px 15px 3px 0;
+  font-size: 16px;
+}
+
+/* Estados del mic */
+#custom-mic.recording { color: @yellow; border-color: @yellow; } /* grabando */
+#custom-mic.muted     { color: @red;    border-color: @red; }    /* mute */
+#custom-mic.idle      { color: @green;  border-color: @green; }  /* listo */
+
+/* Estados de cámara */
+#custom-cam.on  { color: @yellow; border-color: @yellow; } /* en uso */
+#custom-cam.off { color: @green;  border-color: @green; }
+
 
 /* tray */
 #tray { padding: 0 15px 0 0; }
