@@ -7,11 +7,11 @@
   "spacing": 0,
   // Load Modules
   "include": [
-    "~/.config/waybar/modules.json"
+    "~/.config/waybar/modules.json",
+    "~/.config/waybar/custom-modules.json"
   ],
   "modules-left": [
     "custom/appmenu",
-    "clock",
     "hyprland/workspaces",
     "custom/containers",
     "custom/mic",
@@ -30,138 +30,8 @@
     "battery",
     "custom/weather",
     "tray",
+    "clock",
     "custom/lock",
     "custom/exit"
-  ],
-  "battery": {
-    "interval": 15,
-    "format": "{icon}  {capacity}%",
-    "format-charging": "  {capacity}%",
-    "format-plugged": "  {capacity}%",
-    "format-alt": "{time}",
-    "states": {
-      "warning": 20,
-      "critical": 10
-    },
-    "format-icons": [
-      "",
-      "",
-      "",
-      "",
-      ""
-    ],
-    // Si Waybar no detecta tu batería, especifica el nombre (BAT0/BAT1...)
-    // "bat": "BAT0",
-    // "adapter": "AC"
-    "tooltip": true
-  },
-  "pulseaudio": {
-    "scroll-step": 5,
-    "format": "{icon}  {volume}%",
-    "format-muted": " 0%",
-    "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
-    "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ +5%",
-    "on-scroll-down": "pactl set-sink-volume @DEFAULT_SINK@ -5%",
-    "format-icons": {
-      "default": [
-        "",
-        "",
-        ""
-      ]
-    }
-  },
-  "clock": {
-    "interval": 1,
-    "format": "{:%R}"
-  },
-  "network": {
-    "interval": 3,
-    // "interface": "wlp2s0", // <- opcional si Waybar no detecta bien
-    "format-wifi": "{signalStrength}%  ↓{bandwidthDownBits} ↑{bandwidthUpBits}",
-    "format-ethernet": "󰈀 {ipaddr}",
-    "format-linked": "󰈁 {ifname}",
-    "format-disconnected": "󰤭",
-    "tooltip-format": "{ifname} · {essid}\nIP: {ipaddr}\nGateway: {gwaddr}\nUp: {bandwidthUpBits}\nDown: {bandwidthDownBits}",
-    // Click: abrir editor de conexiones (GUI de NetworkManager)
-    "on-click": "nm-connection-editor",
-    // Scroll: re-escaneo rápido de redes
-    "on-scroll-up": "nmcli device wifi rescan",
-    "on-scroll-down": "nmcli device wifi rescan"
-  },
-  "cpu": {
-    "interval": 3,
-    "format": " {usage}%",
-    "max-length": 30,
-    "states": {
-      "warning": 75,
-      "critical": 90
-    },
-    "on-click": "btop" // abre tu monitor favorito; cámbialo si quieres
-  },
-  "memory": {
-    "interval": 5,
-    "format": " {percentage}%",
-    "max-length": 30,
-    "states": {
-      "warning": 75,
-      "critical": 90
-    },
-    "on-click": "btop"
-  },
-  "backlight": {
-    "device": "intel_backlight", // a veces es "amdgpu_bl0" o "acpi_video0"
-    "format": "  {percent}%",
-    "on-scroll-up": "brightnessctl set +5%",
-    "on-scroll-down": "brightnessctl set 5%-",
-    "tooltip-format": "Brillo: {percent}%"
-  },
-  "custom/cliphist": {
-    "interval": 5,
-    "exec": "cliphist list | head -n 1 | cut -c1-30", // muestra el último recorte
-    "on-click": "cliphist list | fuzzel | cliphist decode | wl-copy",
-    "tooltip": true,
-    "tooltip-format": "Historial de portapapeles"
-  },
-  "custom/lock": {
-    "format": "",
-    "tooltip": true,
-    "tooltip-format": "Bloquear pantalla",
-    "on-click": "hyprlock"
-  },
-  "idle_inhibitor": {
-    "format": "{icon}",
-    "format-icons": {
-      "activated": "", // inhibiendo bloqueo
-      "deactivated": "" // bloqueo normal activo
-    },
-    "tooltip": true,
-    "tooltip-format": "{status}"
-  },
-  "custom/containers": {
-    "exec": "~/.config/waybar/scripts/containers.sh",
-    "interval": 5,
-    "return-type": "json",
-    "tooltip": true,
-    "on-click": "kitty -e bash -lc 'command -v docker >/dev/null && docker ps || podman ps; read -n1'"
-  },
-  "custom/mic": {
-    "exec": "~/.config/waybar/scripts/mic_status.sh",
-    "interval": 2,
-    "return-type": "json",
-    "on-click": "pactl set-source-mute @DEFAULT_SOURCE@ toggle",
-    "tooltip": true
-  },
-  "custom/cam": {
-    "exec": "~/.config/waybar/scripts/cam_status.sh",
-    "interval": 3,
-    "return-type": "json",
-    "tooltip": true
-  },
-  "custom/weather": {
-    "exec": "bash ~/.config/waybar/scripts/wittr.sh",
-    "return-type": "json",
-    "format": "{}",
-    "tooltip": true,
-    "interval": 900
-  },
+  ]
 }

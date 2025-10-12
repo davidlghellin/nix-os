@@ -16,8 +16,9 @@
 window#waybar { background-color: @barbg; }
 
 /* --- cápsula común verde (unifica estilo) --- */
-#battery, #pulseaudio, #network, #cpu, #memory, #clock, #backlight,
-#custom-appmenu, #custom-cliphist, #custom-hotkeys, #custom-vpn, #weather {
+#battery, #backlight, #cpu, #clock, #pulseaudio, #network, #idle_inhibitor, #memory, #tray, #weather,
+#custom-appmenu, #custom-cliphist, #custom-exit, #custom-hotkeys, #custom-lock, #custom-containers,
+#custom-mic, #custom-cam, #custom-weather, #custom-vpn {
   background-color: transparent;
   color: @green;
   border: 2px solid @green;
@@ -26,8 +27,7 @@ window#waybar { background-color: @barbg; }
   margin: 3px 15px 3px 0;
   font-size: 16px;
 }
-#pulseaudio.muted,
-#network.disconnected {
+#pulseaudio.muted, #network.disconnected {
   color: @red;
   border-color: @red;
 }
@@ -36,18 +36,6 @@ window#waybar { background-color: @barbg; }
 #cpu icon, #memory icon, #network icon, #clock icon, #backlight icon { margin-right: 8px; }
 #cpu.warning, #memory.warning { color: @orange; border-color: @orange; }
 #cpu.critical, #memory.critical { color: @red; border-color: @red; }
-
-/* bluetooth coherente (si lo usas) */
-#bluetooth, #bluetooth.on, #bluetooth.connected {
-  background-color: transparent;
-  color: @green;
-  border: 2px solid @green;
-  border-radius: 6px;
-  padding: 2px 12px 0 10px;
-  margin: 3px 15px 3px 0;
-  font-size: 16px;
-}
-#bluetooth.off { background: transparent; padding: 0; margin: 0; }
 
 /* batería: un solo “critical” + una sola animación */
 @keyframes batt-blink { to { background-color: @barbg; } }
@@ -87,31 +75,6 @@ tooltip label { color: #000; }
 #window { margin: 3px 15px 3px 0; padding: 2px 10px 0 10px; color: white; font-size: 16px; }
 window#waybar.empty #window { background-color: transparent; }
 
-/* -----------------------------------------------------
- * Power Menu (custom/exit)
- * ----------------------------------------------------- */
-#custom-exit {
-  background-color: transparent;
-  color: @green;
-  border: 2px solid @green;
-  border-radius: 6px;
-  padding: 2px 12px 0 10px;
-  margin: 3px 15px 3px 0;
-  font-size: 16px;
-}
-
-/* -----------------------------------------------------
- * Idle Inhibitor (candado / bloqueo)
- * ----------------------------------------------------- */
-#idle_inhibitor {
-  background-color: transparent;
-  color: @green;
-  border: 2px solid @green;
-  border-radius: 6px;
-  padding: 2px 12px 0 10px;
-  margin: 3px 15px 3px 0;
-  font-size: 16px;
-}
 
 /* Cuando está activo, ponlo en rojo */
 #idle_inhibitor.activated {
@@ -119,47 +82,10 @@ window#waybar.empty #window { background-color: transparent; }
   border-color: @red;
 }
 
-#custom-lock {
-  background-color: transparent;
-  color: @green;
-  border: 2px solid @green;
-  border-radius: 6px;
-  padding: 2px 12px 0 10px;
-  margin: 3px 15px 3px 0;
-  font-size: 16px;
-}
-
-#custom-containers {
-  background: transparent;
-  color: @green;
-  border: 2px solid @green;
-  border-radius: 6px;
-  padding: 2px 12px 0 10px;
-  margin: 3px 15px 3px 0;
-  font-size: 16px;
-}
 #custom-containers.starting { color: @yellow; border-color: @yellow; }
 #custom-containers.off      { color: @grey;   border-color: @grey;   }
 
-#custom-mic, #custom-cam {
-  background: transparent;
-  color: @green;
-  border: 2px solid @green;
-  border-radius: 6px;
-  padding: 2px 12px 0 10px;
-  margin: 3px 15px 3px 0;
-  font-size: 16px;
-}
 
-#custom-weather {
-  background: transparent;
-  color: @green;
-  border: 2px solid @green;
-  border-radius: 6px;
-  padding: 2px 12px 0 10px;
-  margin: 3px 15px 3px 0;
-  font-size: 16px;
-}
 /* Estados del mic */
 #custom-mic.recording { color: @yellow; border-color: @yellow; } /* grabando */
 #custom-mic.muted     { color: @red;    border-color: @red; }    /* mute */
