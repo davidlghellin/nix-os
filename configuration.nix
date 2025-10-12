@@ -64,6 +64,10 @@ networking = {
   #  nvidiaSettings = true;         # panel de control nvidia-settings
   #};
 
+  services.gvfs.enable = true;    # Necesario para Thunar / XFCE / Nautilus
+  services.udisks2.enable = true;  # Permite montar USB, SD, discos, Kindle, etc.
+  services.devmon.enable = true;  # monta automáticamente con udisks2
+
 
   services.displayManager.sddm.wayland.enable = true;
 
@@ -93,7 +97,7 @@ networking = {
     isNormalUser = true;
     description = "David López";
 #    shell = pkgs.zsh; 
-    extraGroups = [ "networkmanager" "wheel" "input" "video" "seat" "docker"];
+    extraGroups = [ "networkmanager" "wheel" "storage" "plugdev" "input" "video" "seat" "docker"];
     packages = with pkgs; [
     ];
   };
@@ -185,6 +189,8 @@ lsof
 	pavucontrol
 	blueman
 	#gvfs
+  gvfs
+  udisks2
 
 	# Alternativas Rust
 	httpie
@@ -216,6 +222,10 @@ lsof
 	# otras
 	calibre
 	vesktop
+
+    libreoffice-qt6-fresh   # KDE/Qt (recomendado en Qt)
+  hunspell
+  hunspellDicts.es_ES   # o hunspellDicts
 
 	# desarrollo
 	dbeaver-bin
@@ -289,13 +299,11 @@ services.udev.packages = [ pkgs.calibre ];
     };
   };
 
-
 services.minidlna = {
   enable = true;
   settings = {
-#    media_dir = [ "V,/home/wizord/Torrents" ];  # V: vídeo, A: audio, P: fotos
-    media_dir = [ "V,/mnt/multimedia" ];  # V: vídeo, A: audio, P: fotos
-    friendly_name = "Mi DLNA Server";
+    media_dir = [ "V,/mnt/multimedia/Torrents" ];
+    friendly_name = "Nixos Server";
     inotify = "yes";
     notify_interval = 900;
     port = 8200;
@@ -305,8 +313,29 @@ services.minidlna = {
 
 users.users.minidlna = {
     extraGroups =
-      [ "users" "wizord" ]; # so minidlna can access the files.
+      [ "users" "wizord" ];
   };
+
+services.transmission = {
+  enable = true;
+  user = "wizord";
+  openFirewall = true;
+
+  settings = {
+    download-dir = "/mnt/multimedia/Torrents";
+    incomplete-dir-enabled = false;
+
+    # Acceso remoto (interfaz web)
+    rpc-enabled = true;
+    rpc-bind-address = "0.0.0.0";
+    rpc-whitelist-enabled = false; # para acceder desde cualquier IP local
+
+    # Permisos y ajustes básicos
+    umask = 2; # permisos rw-rw-r--
+    download-queue-enabled = true;
+    download-queue-size = 5;
+  };
+};
 
 
 networking.firewall = {
@@ -334,3 +363,4 @@ networking.firewall = {
   system.stateVersion = "25.05"; # Did you read the comment?
 
 }
+
