@@ -1,12 +1,12 @@
-//  __  __           _       _            
-// |  \/  | ___   __| |_   _| | ___  ___  
-// | |\/| |/ _ \ / _` | | | | |/ _ \/ __| 
-// | |  | | (_) | (_| | |_| | |  __/\__ \ 
-// |_|  |_|\___/ \__,_|\__,_|_|\___||___/ 
-//                                        
-//  
-// by Stephan Raabe (2023) 
-// ----------------------------------------------------- 
+//  __  __           _       _
+// |  \/  | ___   __| |_   _| | ___  ___
+// | |\/| |/ _ \ / _` | | | | |/ _ \/ __|
+// | |  | | (_) | (_| | |_| | |  __/\__ \
+// |_|  |_|\___/ \__,_|\__,_|_|\___||___/
+//
+//
+// by Stephan Raabe (2023)
+// -----------------------------------------------------
 //
 {
     // Workspaces
@@ -22,7 +22,7 @@
         },
         "persistent-workspaces": {
              "*": 4
-        }       
+        }
     },
 
     // Hyprland Window
@@ -39,13 +39,13 @@
 
     // Rofi Application Launcher
     "custom/appmenu": {
-        "format": "App",
+        "format": "❄️",
         "tooltip-format": "Left: Open the application launcher\nRight: Show all keybindings",
         "on-click": "fuzzel",
-        "on-click-right": "~/.config/ml4w/scripts/keybindings.sh",
+        //"on-click-right": "~/.config/ml4w/scripts/keybindings.sh",
         "tooltip": false
     },
-    
+
     // Power Menu
     "custom/exit": {
         "format": "",
@@ -102,7 +102,7 @@
         "format": "D {percentage_used}% ",
         "path": "/",
         "on-click": "alacritty -e htop"
-    }, 
+    },
 
     "hyprland/language": {
         "format": "/ K {short}"
@@ -115,7 +115,7 @@
             "transition-duration": 300,
             "children-class": "not-memory",
             "transition-left-to-right": false
-        },        
+        },
         "modules": [
             "custom/system",
             "disk",
@@ -124,7 +124,7 @@
             "hyprland/language"
         ]
     },
-    
+
   // Network
   "network": {
     "format": "{ifname}",
@@ -136,8 +136,8 @@
     "tooltip-format-ethernet": " {ifname}\nIP: {ipaddr}\n up: {bandwidthUpBits} down: {bandwidthDownBits}",
     "tooltip-format-disconnected": "Disconnected",
     "max-length": 50,
-    "on-click": "~/.config/ml4w/settings/networkmanager.sh",
-    "on-click-right": "~/.config/ml4w/scripts/nm-applet.sh toggle",
+    //"on-click": "~/.config/ml4w/settings/networkmanager.sh",
+    //"on-click-right": "~/.config/ml4w/scripts/nm-applet.sh toggle",
   },
 
     // Battery
@@ -201,6 +201,6 @@
             "activated": "",
             "deactivated": ""
         },
-        "on-click-right": "hyprlock"        
+        "on-click-right": "hyprlock"
     }
 }

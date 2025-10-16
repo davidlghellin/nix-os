@@ -18,13 +18,13 @@ window#waybar { background-color: @barbg; }
 /* --- cápsula común verde (unifica estilo) --- */
 #battery, #backlight, #cpu, #clock, #pulseaudio, #network, #idle_inhibitor, #memory, #tray, #weather,
 #custom-appmenu, #custom-cliphist, #custom-exit, #custom-hotkeys, #custom-lock, #custom-containers,
-#custom-mic, #custom-cam, #custom-weather, #custom-vpn {
+#custom-mic, #custom-cam, #custom-weather, #custom-vpn #group-misc {
   background-color: transparent;
   color: @green;
   border: 2px solid @green;
   border-radius: 6px;
   padding: 2px 12px 0 10px;
-  margin: 3px 15px 3px 0;
+  margin: 3px 5px 3px 0;
   font-size: 16px;
 }
 #pulseaudio.muted, #network.disconnected {
@@ -50,7 +50,7 @@ window#waybar { background-color: @barbg; }
 /* workspaces (tu estilo actual, sin duplicados) */
 #workspaces {
   background: transparent;
-  margin: 3px 15px 3px 0;
+  margin: 3px 5px 3px 0;
   padding: 0;
   border: none;
 }

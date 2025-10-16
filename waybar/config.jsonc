@@ -18,7 +18,8 @@
     "custom/cam"
   ],
   "modules-center": [
-    "hyprland/window"
+    "hyprland/window",
+	"group/misc"
   ],
   "modules-right": [
     "mpd",
@@ -33,5 +34,17 @@
     "clock",
     "custom/lock",
     "custom/exit"
-  ]
+  ],
+
+	"group/misc": {
+		"drawer": {
+		"transition-duration":500,
+		"transition-top-to-button":false
+		},
+		"modules": ["custom/separator","network", "cpu"]
+	},
+	"custom/separator":{
+		"format": "-accca-",
+		"tooltip": false
+	}
 }
