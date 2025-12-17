@@ -33,7 +33,7 @@ input {
         natural-scroll
         // accel-speed 0.2
         // accel-profile "flat"
-        // scroll-method "two-finger"
+        scroll-method "two-finger"
         // disabled-on-external-mouse
     }
 
@@ -344,6 +344,7 @@ window-rule {
 }
 
 binds {
+	"Mod+F1"     { spawn "/run/current-system/sw/bin/zsh" "-lc" "/home/wizord/.config/niri/keys.sh"; }
 	"Mod+Return" { spawn "kitty"; }
 	"Mod+space"  { spawn "rofi" "-show" "run"; }
     // Keys consist of modifiers separated by + signs, followed by an XKB key name
@@ -389,7 +390,7 @@ binds {
     // or do a four-finger swipe up on a touchpad.
     Mod+O repeat=false { toggle-overview; }
 
-    Mod+Q repeat=false { close-window; }
+    Mod+C repeat=false { close-window; }
 
     Mod+Left  { focus-column-left; }
     Mod+Down  { focus-window-down; }
@@ -553,7 +554,7 @@ binds {
     // Makes the column "fill the rest of the space".
     Mod+Ctrl+F { expand-column-to-available-width; }
 
-    Mod+C { center-column; }
+    // Mod+C { center-column; }
 
     // Center all fully visible columns on screen.
     Mod+Ctrl+C { center-visible-columns; }
