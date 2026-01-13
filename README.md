@@ -22,6 +22,7 @@ Tenemos:
 cp -R ~/.config/waybar .
 cp -R ~/.config/hypr .
 cp -R ~/.config/kitty .
+cp -R ~/.config/niri .
 cp -R ~/.config/radiotray-ng .
 sudo cp /etc/nixos/configuration.nix .
 ```
