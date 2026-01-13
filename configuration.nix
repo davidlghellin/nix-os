@@ -53,7 +53,7 @@ networking = {
 
 
   # desactivar si estamos en wayland
-  services.xserver.enable = false;
+   services.xserver.enable = false;
   # envidia driver -> puede que más consumo y ventilador
   #services.xserver.enable = true;
   #services.xserver.videoDrivers = [ "nvidia" ];
@@ -77,8 +77,20 @@ networking = {
   #services.blueman.enable = true;
   services.dbus.enable = true;
 
-  xdg.portal.enable = true;
-  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
+  #xdg.portal.enable = true;
+  #xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
+
+xdg.portal = {
+  enable = true;
+  extraPortals = [
+    pkgs.xdg-desktop-portal-gtk   # para diálogos, temas, etc.
+    pkgs.xdg-desktop-portal-wlr   # para compositores Wayland como Niri o Hyprland
+  ];
+
+  # Prioriza el portal GTK si hay varios
+  config.common.default = [ "gtk" "wlr" ];
+};
+
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -109,6 +121,20 @@ networking = {
     enable = true;
     xwayland.enable = true;
   };
+  # niri
+  programs.niri.enable = true;
+
+environment.sessionVariables = {
+  # Electron/Chromium en Wayland
+  NIXOS_OZONE_WL = "1";            # fuerza Wayland en Electron
+  OZONE_PLATFORM = "wayland";      # pista adicional
+  # Qt y GTK bien en Wayland (fallback a X11 si hace falta)
+  QT_QPA_PLATFORM = "wayland;xcb";
+  SDL_VIDEODRIVER = "wayland";
+  CLUTTER_BACKEND = "wayland";
+  # (opcional) Firefox en Wayland
+  MOZ_ENABLE_WAYLAND = "1";
+};
 
 # Permite zsh como shell de login
 environment.shells = with pkgs; [ zsh ];
@@ -165,18 +191,23 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
 	fastfetch
 	streamripper
 
-	libnotify	
+	libnotify
+	udiskie	
 	waybar
 	wlogout
 	hyprshot
 	hyprlock
-	rofi-wayland
+	rofi
 	swww
+	eww
 	hypridle
-
+	pywal
+	nwg-look
 lsof
         wl-clipboard
-#	cliphist
+	cliphist
+	wl-clip-persist
+	nwg-clipman
 #lm_sensors
 
 	# Apps
@@ -243,11 +274,13 @@ lsof
 	openssl
 	cacert
 	pkg-config
-	rustc
 	rustup
-	cargo
+#	rustc
+#	cargo
 	protobuf
 	python311
+	maturin
+	hatch
 	lldb
 	rust-analyzer
 
@@ -259,21 +292,18 @@ lsof
   #protonmail-bridge
   #libappindicator
 
-  xorg.xcursorthemes
-  adwaita-icon-theme
-
-
+	xorg.xcursorthemes
+	adwaita-icon-theme
   ];
-environment.variables = {
-  XCURSOR_THEME = "Bibata-Modern-Ice";
-  XCURSOR_SIZE  = "24";
-};
 
 services.udev.packages = [ pkgs.calibre ];
 
 
   # config para sail
   environment.variables = {
+    XCURSOR_THEME = "Bibata-Modern-Ice";
+    XCURSOR_SIZE  = "24";
+
     OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
     PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
@@ -318,8 +348,12 @@ users.users.minidlna = {
 
 services.transmission = {
   enable = true;
+  package = pkgs.transmission_4;
+
   user = "wizord";
   openFirewall = true;
+
+
 
   settings = {
     download-dir = "/mnt/multimedia/Torrents";
