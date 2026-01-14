@@ -213,6 +213,7 @@ lsof
 	cliphist
 	wl-clip-persist
 	nwg-clipman
+	stow
 #lm_sensors
 
 	# Apps
