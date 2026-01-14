@@ -166,6 +166,10 @@ fonts.packages = with pkgs; [
 # Haz zsh la shell por defecto de tu usuario
 users.users.wizord.shell = pkgs.zsh;
 
+environment.shellInit = ''
+  export PATH="$HOME/bin:$PATH"
+'';
+
 nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
 

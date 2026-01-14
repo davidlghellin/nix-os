@@ -24,5 +24,6 @@ cp -R ~/.config/hypr .
 cp -R ~/.config/kitty .
 cp -R ~/.config/niri .
 cp -R ~/.config/radiotray-ng .
+cp -R ~/bin/selector-wallpaper .
 sudo cp /etc/nixos/configuration.nix .
 ```
