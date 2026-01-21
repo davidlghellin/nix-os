@@ -1,0 +1,10 @@
+{
+	"bookmarks" : "/home/wizord/.config/radiotray-ng/bookmarks.json",
+	"last-station" : "Absolute Trance (Euro) Radio",
+	"last-station-group" : "trance",
+	"last-station-notifications" : true,
+	"notification-verbose" : true,
+	"notifications" : true,
+	"split-title" : true,
+	"volume-level" : 26
+}
