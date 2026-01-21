@@ -59,7 +59,7 @@
 
 "clock": {
   "interval": 1,
-  "format": "{:%H%M}",
+  "format": "{:%H:%M}",
   "format-alt": "{:%d%m}",
   "tooltip-format": "{:%Y-%m-%d %H:%M}"
 },

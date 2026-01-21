@@ -10,11 +10,9 @@
 }
 
 window#waybar {
-  background-color: rgba(14, 17, 21, 1);
+  background-color: transparent;
   color: #b3b7bd;
-  min-width: 30px;
-  border: 1px solid rgba(14, 17, 21, 1);
-  border-radius: 3px;
+  border: none;
 }
 
 #workspaces {
