@@ -1,0 +1,50 @@
+{
+  "layer": "top",
+  "margin-top": 14,
+  "margin-bottom": 0,
+  "margin-left": 14,
+  "margin-right": 14,
+  "spacing": 0,
+  // Load Modules
+  "include": [
+    "~/.config/waybar/modules.json",
+    "~/.config/waybar/custom-modules.json"
+  ],
+  "modules-left": [
+    "custom/appmenu",
+    "hyprland/workspaces",
+    "custom/containers",
+    "custom/mic",
+    "custom/cam"
+  ],
+  "modules-center": [
+    "hyprland/window",
+	"group/misc"
+  ],
+  "modules-right": [
+    "mpd",
+    "network",
+    "cpu",
+    "memory",
+    "backlight",
+    "pulseaudio",
+    "battery",
+    "custom/weather",
+    "tray",
+    "clock",
+    "custom/lock",
+    "custom/exit"
+  ],
+
+	"group/misc": {
+		"drawer": {
+		"transition-duration":500,
+		"transition-top-to-button":false
+		},
+		"modules": ["custom/separator","network", "cpu"]
+	},
+	"custom/separator":{
+		"format": "-accca-",
+		"tooltip": false
+	}
+}
