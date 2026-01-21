@@ -35,6 +35,11 @@
     "custom/lock",
     "custom/exit"
   ],
+"custom/exit": {
+  "format": "⏻",
+  "tooltip": "Power menu",
+  "on-click": "wlogout"
+},
 
 	"group/misc": {
 		"drawer": {

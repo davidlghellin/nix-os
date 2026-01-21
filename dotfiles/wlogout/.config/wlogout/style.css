@@ -1,0 +1,33 @@
+* {
+  background-image: none;
+  box-shadow: none;
+}
+
+window {
+  background-color: rgba(14, 17, 21, 0.70);
+}
+
+button {
+  color: #b3b7bd;
+  background-color: rgba(23, 28, 33, 0.95);
+  border-radius: 12px;
+  border: 2px solid rgba(16, 16, 16, 1);
+
+  margin: 18px;
+  padding: 18px;
+  font-size: 16px;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 40%;
+}
+
+button:hover {
+  background-color: rgba(120, 184, 146, 1);
+  color: rgba(23, 28, 33, 1);
+  border-color: rgba(120, 184, 146, 1);
+}
+
+button:focus {
+  outline: none;
+}
