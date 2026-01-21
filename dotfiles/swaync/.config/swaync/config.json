@@ -1,0 +1,18 @@
+{
+  "position": "top-right",
+  "layer": "overlay",
+  "timeout": 5000,
+  "notification-animations": true,
+  "ignore-empty": true,
+
+  "control-center-width": 500,
+  "control-center-height": 800,
+
+  "widgets": ["notifications", "mpris"],
+  "widget-config": {
+    "mpris": {
+      "image-size": 64,
+      "max-title-length": 40
+    }
+  }
+}
