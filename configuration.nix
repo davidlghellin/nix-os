@@ -69,9 +69,10 @@ networking = {
   services.devmon.enable = true;  # monta automáticamente con udisks2
 
 
-  services.displayManager.sddm.wayland.enable = true;
-
-  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm = {
+    wayland.enable = true;
+    enable = true;
+  };
 
   services.seatd.enable = true;
   #services.blueman.enable = true;
@@ -259,6 +260,7 @@ lsof
 	# otras
 	calibre
 	vesktop
+	watson
 
     libreoffice-qt6-fresh   # KDE/Qt (recomendado en Qt)
   hunspell
