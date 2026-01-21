@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WALL_DIR="$HOME/Images"   # o "$HOME/Imagenes" si es tu carpeta real
+
+cd "$WALL_DIR" || { echo "No existe: $WALL_DIR"; exit 1; }
+
+shopt -s nullglob
+files=( *.jpg *.png *.jpeg *.webp )
+shopt -u nullglob
+
+[ ${#files[@]} -gt 0 ] || { echo "No hay imágenes en $WALL_DIR"; exit 0; }
+
+SELECTED_WALL="$(
+  for f in "${files[@]}"; do
+    printf "%s\0icon\x1f%s\n" "$f" "$WALL_DIR/$f"
+  done | rofi -dmenu -p "Wallpaper"
+)"
+
+if [ -n "${SELECTED_WALL:-}" ]; then
+  img="$WALL_DIR/$SELECTED_WALL"
+
+  # 1) Wallpaper
+  swww img "$img" --transition-fps 60 --transition-step 255 --transition-type any
+
+  # 2) Paleta (pywal)
+  wal -i "$img"
+fi
