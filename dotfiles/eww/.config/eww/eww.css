@@ -1,0 +1,291 @@
+/* Yoda Theme Color Palette */
+* {
+  all: unset;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 15px;
+  color: #b9f6ca;
+}
+
+/* Dashboard Container */
+.dashboard {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* Widget Base Styles */
+.widget {
+  background: rgba(5, 7, 5, 0.92);
+  border-radius: 12px;
+  padding: 16px;
+  border: 2px solid rgba(0, 180, 90, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Widget Header */
+.widget-header {
+  margin-bottom: 3px;
+}
+
+.widget-icon {
+  font-size: 22px;
+  color: #00ff99;
+  margin-right: 8px;
+}
+
+.tokyo-icon {
+  margin-right: 12px;
+  margin-left: 8px;
+}
+
+.widget-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #00ff99;
+}
+
+.tokyo-title {
+  margin-left: 0;
+}
+
+.system-title, .storage-title {
+  margin-left: 8px;
+}
+
+
+
+/* ===== TOKYO WEATHER WIDGET ===== */
+.weather-card {
+}
+
+.weather-main {
+  padding: 8px 8px 8px 8px;
+}
+
+.weather-icon-large {
+  font-size: 64px;
+  color: #00ff99;
+  text-shadow: 0 0 20px rgba(0, 255, 153, 0.4);
+}
+
+.weather-temp-large {
+  font-size: 48px;
+  font-weight: 700;
+  color: #b9f6ca;
+}
+
+.weather-condition-text {
+  font-size: 15px;
+  color: #ffffff;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.weather-details-row {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.detail-label {
+  font-size: 15px;
+  color: #ffffff;
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #00ff99;
+}
+
+/* ===== SYSTEM MONITOR WIDGET ===== */
+.system-card {
+  padding-bottom: 28px;
+}
+
+.metrics-grid {
+  padding: 4px 0 4px 0;
+}
+
+.metric-row {
+  padding: 6px 0;
+}
+
+.metric-icon-simple {
+  font-size: 24px;
+  color: #00ff99;
+  margin-right: 4px;
+}
+
+.metric-info {
+  min-width: 0;
+}
+
+.metric-label {
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.metric-bar {
+  min-height: 8px;
+  border-radius: 4px;
+  background-color: rgba(0, 255, 153, 0.05);
+}
+
+.metric-bar trough {
+  min-height: 8px;
+  border-radius: 4px;
+  background-color: rgba(0, 255, 153, 0.05);
+}
+
+.metric-bar progress {
+  min-height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #00ff99, #66ffb2);
+}
+
+.metric-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #b9f6ca;
+  min-width: 0;
+}
+
+.metric-value-large {
+  font-size: 18px;
+  font-weight: 700;
+  color: #00ff99;
+  margin-top: 4px;
+}
+
+/* ===== STORAGE WIDGET ===== */
+.storage-card {
+}
+
+.storage-visual {
+  padding: 8px 0 8px 0;
+}
+
+.storage-ring {
+  margin-bottom: 10px;
+  padding: 0;
+  min-width: 110px;
+  min-height: 110px;
+}
+
+.storage-progress-bg {
+  min-width: 110px;
+  min-height: 110px;
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.storage-progress {
+  min-width: 110px;
+  min-height: 110px;
+  color: #00ff99;
+}
+
+.storage-center {
+}
+
+.storage-percent-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #b9f6ca;
+  margin-bottom: -4px;
+}
+
+.storage-label-small {
+  font-size: 13px;
+  color: #ffffff;
+  margin-top: -4px;
+  font-weight: 600;
+}
+
+.storage-stats {
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 255, 153, 0.15);
+}
+
+.storage-stat-label {
+  font-size: 15px;
+  color: #ffffff;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.storage-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #b9f6ca;
+}
+
+/* ===== MEDIA PLAYER WIDGET ===== */
+.media-card {
+}
+
+.media-icon {
+  font-size: 24px;
+  color: #00ff99;
+  text-shadow: 0 0 20px rgba(0, 255, 153, 0.5);
+}
+
+.media-status-icon {
+  font-size: 20px;
+  color: #00ff99;
+  margin-right: 16px;
+  text-shadow: 0 0 16px rgba(0, 255, 153, 0.8), 0 0 8px rgba(0, 255, 153, 0.6);
+}
+
+.media-content {
+  padding: 8px 8px 2px 8px;
+  border-top: none;
+  margin-top: 2px;
+}
+
+.media-cover {
+  border-radius: 8px;
+  border: 2px solid rgba(0, 255, 153, 0.4);
+  box-shadow: 0 0 16px rgba(0, 255, 153, 0.3);
+  min-width: 80px;
+  min-height: 80px;
+}
+
+.media-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #b9f6ca;
+  text-shadow: 0 0 8px rgba(185, 246, 202, 0.3);
+  margin-bottom: 4px;
+}
+
+.media-artist {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ===== YODA QUOTE WIDGET ===== */
+.yoda-quote-widget {
+  background: transparent;
+  padding: 16px;
+}
+
+.yoda-quote-text {
+  font-family: "Noto Serif", serif;
+  font-size: 28px;
+  font-weight: 500;
+  color: #ffffff;
+  margin: 4px 0;
+}
+
+.yoda-quote-author {
+  font-family: "Noto Serif", serif;
+  font-size: 20px;
+  color: #ffffff;
+  margin-top: 8px;
+  font-style: italic;
+}
