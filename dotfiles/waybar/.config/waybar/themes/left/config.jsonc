@@ -31,6 +31,7 @@
     "pulseaudio",
     "battery",
     "tray",
+"custom/notifications",
     "clock",
     "custom/lock",
     "custom/exit"
@@ -99,5 +100,13 @@
     "on-click": "pactl set-sink-mute 0 toggle",
     "on-click-right": "pactl set-sink-mute 0 toggle",
     "on-click-middle": "$HOME/.config/rofi/applets/bin/volume.sh"
+  },
+  "custom/notifications": {
+    "format": "{}",
+    "exec": "bash -lc '[[ \"$(swaync-client -D 2>/dev/null)\" == \"true\" ]] && echo \"🔕\" || echo \"🔔\"'",
+    "interval": 1,
+    "tooltip": false,
+    "on-click": "swaync-client -d > /dev/null",
+    "on-click-right": "swaync-client -t"
   }
 }
