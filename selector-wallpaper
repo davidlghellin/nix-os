@@ -25,4 +25,7 @@ if [ -n "${SELECTED_WALL:-}" ]; then
 
   # 2) Paleta (pywal)
   wal -i "$img"
+
+  # 3) Guardar selección (persistencia)
+  echo "$img" > "$HOME/.cache/current_wallpaper"
 fi
