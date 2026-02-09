@@ -1,3 +1,6 @@
+# Add ~/bin to PATH
+export PATH="$HOME/bin:$PATH"
+
 ZSH_THEME="robbyrussell"
 # ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
