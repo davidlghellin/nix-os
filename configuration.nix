@@ -71,6 +71,17 @@
   };
 
   ##########################################################################
+  ## Audio (PipeWire)
+  ##########################################################################
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    jack.enable = true;
+  };
+
+  ##########################################################################
   ## Display / Wayland
   ##########################################################################
   services.xserver.enable = false;
@@ -94,9 +105,9 @@
     enable = true;
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
-      pkgs.xdg-desktop-portal-wlr
+      pkgs.xdg-desktop-portal-hyprland
     ];
-    config.common.default = [ "gtk" "wlr" ];
+    config.common.default = [ "hyprland" "gtk" ];
   };
 
   ##########################################################################
@@ -161,6 +172,13 @@
   ];
 
   ##########################################################################
+  ## GTK Theme (Minimalista)
+  ##########################################################################
+  environment.variables = {
+    GTK_THEME = "Nordic";
+  };
+
+  ##########################################################################
   ## Virtualisation
   ##########################################################################
   virtualisation.docker.enable = true;
@@ -206,6 +224,9 @@
     eww
     nwg-look
     pywal
+    brightnessctl
+    playerctl
+    xdg-desktop-portal-hyprland
 
     ## Clipboard
     wl-clipboard
@@ -235,6 +256,7 @@
 
     ## Network / VPN
     networkmanager
+    networkmanagerapplet
     protonvpn-gui
 
     ## Apps
@@ -245,6 +267,15 @@
     libreoffice-qt6-fresh
     calibre
     vesktop
+    xfce.thunar
+    xfce.thunar-volman
+    udiskie
+    radiotray-ng
+
+    ## Temas (Minimalista)
+    nordic
+    papirus-icon-theme
+    bibata-cursors
 
     ## Dev
     gcc
@@ -281,7 +312,7 @@
   services.minidlna = {
     enable = true;
     settings = {
-      media_dir = [ "V,/mnt/multimedia/Torrents" ];
+      media_dir = [ "V,/home/wizord/multimedia/Torrents" ];
       friendly_name = "Nixos Server";
       inotify = "yes";
       notify_interval = 900;
@@ -302,7 +333,7 @@
     openFirewall = true;
 
     settings = {
-      download-dir = "/mnt/multimedia/Torrents";
+      download-dir = "/home/wizord/multimedia/Torrents";
       incomplete-dir-enabled = false;
       rpc-enabled = true;
       rpc-bind-address = "0.0.0.0";
