@@ -232,6 +232,13 @@
     lsof
     stow
 
+    # Archivos y datos
+    tree
+    jq
+    zip
+    unzip
+    p7zip
+
     # Git / CLI extra
     tig
     httpie

@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Script para mostrar atajos de teclado de Hyprland
+
+rofi -dmenu -i -p "Atajos de teclado" -theme-str 'window {width: 50%;}' <<EOF
+🚀 APLICACIONES
+Super + Return          Terminal (kitty)
+Super + E               Gestor archivos (thunar)
+Super + Space           Lanzador apps (rofi)
+Super + L               Bloquear pantalla
+Super + M               Salir de Hyprland
+Super + Escape          Menú apagado
+
+📸 CAPTURAS
+Print                   Captura ventana
+Shift + Print           Captura región
+
+🔔 NOTIFICACIONES
+Super + N               Centro notificaciones
+
+📋 PORTAPAPELES
+Ctrl + Shift + V        Historial portapapeles
+
+🪟 VENTANAS
+Super + C               Cerrar ventana activa
+Super + V               Ventana flotante
+Super + P               Pseudotile
+Super + J               Toggle split
+
+🎯 NAVEGACIÓN
+Super + Flechas         Mover foco
+Super + 1-9             Cambiar workspace
+Super + Shift + 1-9     Mover ventana a workspace
+Super + S               Workspace especial
+Super + Mouse Rueda     Cambiar workspace
+
+🖱️ RATÓN
+Super + LMB             Mover ventana
+Super + RMB             Redimensionar ventana
+
+⌨️ FUNCIONES
+Fn + F5/F6              Brillo -/+
+Media Keys              Control multimedia
+EOF
