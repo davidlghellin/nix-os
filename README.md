@@ -37,15 +37,23 @@ sudo nixos-rebuild switch
 
 ### 3. Aplicar dotfiles con Stow
 
+**IMPORTANTE**: Ejecutar stow desde `~/nix-os` (no desde `~/nix-os/dotfiles`)
+
 ```bash
-cd ~/nix-os/dotfiles
-stow hypr
-stow niri
-stow rofi
-stow swaync
-stow waybar
-stow kitty
-stow bin
+cd ~/nix-os
+stow -d dotfiles -t ~ hypr
+stow -d dotfiles -t ~ niri
+stow -d dotfiles -t ~ rofi
+stow -d dotfiles -t ~ swaync
+stow -d dotfiles -t ~ waybar
+stow -d dotfiles -t ~ kitty
+stow -d dotfiles -t ~ bin
+```
+
+O todos a la vez:
+```bash
+cd ~/nix-os
+for dir in dotfiles/*/; do stow -d dotfiles -t ~ "$(basename "$dir")"; done
 ```
 
 ### 4. Configurar Zsh
@@ -66,12 +74,14 @@ source ~/.zshrc
 ### Entorno de escritorio
 - **Terminal**: Kitty
 - **Shell**: Zsh
-- **Launcher**: Rofi
+- **Launcher**: Rofi (consistente en Hyprland y Niri)
 - **Notificaciones**: SwayNC
 - **Barra**: Waybar
 - **Lock screen**: Hyprlock
-- **Screenshots**: Hyprshot → `~/Images`
+- **Screenshots**: Hyprshot → `~/Images/Screenshots` (consistente en ambos WM)
 - **Wallpapers**: pywal (wal)
+
+**Nota**: Hyprland y Niri están configurados de forma consistente - mismo launcher (rofi), mismas capturas (hyprshot), mismo autostart, para una experiencia uniforme al cambiar entre ambos.
 
 ### Monitores
 - **eDP-1** (laptop): 1920x1080 @ 144Hz
@@ -94,7 +104,8 @@ source ~/.zshrc
 
 Scripts en `~/bin/` (gestionados con stow):
 - `selector-wallpaper` → Selector de wallpapers con Rofi
-- `show-keybindings` → Muestra ayuda de teclas
+- `show-keybindings` → Muestra ayuda de teclas (Hyprland)
+- `show-keybindings-niri` → Muestra ayuda de teclas (Niri)
 - `programa` → Script de utilidad
 
 ## 🔧 Mantenimiento
@@ -106,6 +117,18 @@ sudo nixos-rebuild switch
 
 ### Actualizar dotfiles
 Los dotfiles están enlazados con stow, así que cualquier cambio en `~/nix-os/dotfiles/` se refleja automáticamente.
+
+Para reenlazar (restow) si es necesario:
+```bash
+cd ~/nix-os
+stow -R -d dotfiles -t ~ <nombre-paquete>  # Reenlazar un paquete específico
+```
+
+Para recargar la configuración:
+```bash
+hyprctl reload          # En Hyprland
+niri msg reload-config  # En Niri
+```
 
 ### Limpieza manual de generaciones
 ```bash
