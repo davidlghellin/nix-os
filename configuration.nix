@@ -238,6 +238,7 @@
     zip
     unzip
     p7zip
+    yt-dlp
 
     # Git / CLI extra
     tig

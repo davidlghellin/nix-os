@@ -22,7 +22,7 @@ alias cat='bat -pp'
 alias vi='nvim'
 alias vim='nvim'
 alias ls='eza --long --header'
-alias top='bpytop'
+alias top='btop'
 alias ctop='docker run --rm -ti  --name=ctop  --volume /var/run/docker.sock:/var/run/docker.sock:ro  quay.io/vektorlab/ctop:latest'
 alias youtube="yt-dlp -x --audio-format mp3 --audio-quality 0" 
 
