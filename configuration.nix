@@ -12,6 +12,7 @@
   ## Boot
   ##########################################################################
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 5;  # Limita las generaciones en el menú de boot
   boot.loader.efi.canTouchEfiVariables = true;
 
   ##########################################################################
@@ -414,6 +415,14 @@
   ## Nix
   ##########################################################################
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  # Garbage collection automático
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 7d";
+  };
+
   nixpkgs.config.allowUnfree = true;
 
   ##########################################################################
