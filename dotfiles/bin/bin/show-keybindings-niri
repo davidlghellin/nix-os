@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Script para mostrar atajos de teclado de Niri
+
+rofi -dmenu -i -p "Atajos de teclado - Niri" -theme-str 'window {width: 50%;}' <<EOF
+🚀 APLICACIONES
+Mod + Return            Terminal (kitty)
+Mod + D                 Lanzador apps (rofi)
+Mod + Space             Lanzador apps (rofi)
+Super + Alt + L         Bloquear pantalla
+
+📸 CAPTURAS
+Print                   Captura ventana
+Shift + Print           Captura región
+
+🔔 NOTIFICACIONES
+Super + N               Centro notificaciones
+
+📋 PORTAPAPELES
+Ctrl + Shift + V        Historial portapapeles
+
+🪟 VENTANAS
+Mod + C                 Cerrar ventana activa
+Mod + V                 Ventana flotante
+Mod + O                 Overview (vista general)
+Mod + Shift + Slash     Mostrar hotkeys
+
+🎯 NAVEGACIÓN (Flechas)
+Mod + Flechas           Mover foco
+Mod + Ctrl + Flechas    Mover ventana
+Mod + Shift + Flechas   Cambiar tamaño
+
+🎯 NAVEGACIÓN (Vim)
+Mod + H/J/K/L           Mover foco
+Mod + Ctrl + H/J/K/L    Mover ventana
+Mod + Shift + H/J/K/L   Cambiar tamaño
+
+📐 WORKSPACES
+Mod + 1-9               Cambiar workspace
+Mod + Shift + 1-9       Mover ventana a workspace
+Mod + Tab               Workspace siguiente
+Mod + Shift + Tab       Workspace anterior
+
+🖱️ RATÓN
+Mod + LMB               Mover ventana
+Mod + RMB               Redimensionar ventana
+Mod + MMB               Cerrar ventana
+
+⌨️ FUNCIONES
+XF86AudioRaise/Lower    Volumen +/-
+XF86AudioMute           Silenciar
+XF86MonBrightness       Brillo +/-
+EOF

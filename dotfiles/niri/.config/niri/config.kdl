@@ -249,7 +249,12 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 spawn-at-startup "waybar" "-c" "/home/wizord/.config/waybar/themes/left/config.jsonc" "-s" "/home/wizord/.config/waybar/themes/left/style.css"
+spawn-at-startup "kitty"
 spawn-at-startup "swww-daemon"
+spawn-sh-at-startup "swww img \"$(cat ~/.cache/current_wallpaper 2>/dev/null || echo ~/Images/black_mountain.jpg)\""
+spawn-at-startup "radiotray-ng"
+spawn-at-startup "swaync"
+spawn-at-startup "blueman-applet"
 spawn-at-startup "protonvpn-app"
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
@@ -270,7 +275,7 @@ hotkey-overlay {
 // You can change the path where screenshots are saved.
 // A ~ at the front will be expanded to the home directory.
 // The path is formatted with strftime(3) to give you the screenshot date and time.
-screenshot-path "~/Images/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+screenshot-path "~/Images/Screenshots/screenshot_%Y%m%d_%H%M%S.png"
 
 // You can also set this to null to disable saving screenshots to disk.
 // screenshot-path null
@@ -329,7 +334,7 @@ window-rule {
 }
 
 binds {
-	"Mod+F1"     { spawn "/run/current-system/sw/bin/zsh" "-lc" "/home/wizord/.config/niri/keys.sh"; }
+	"Mod+F1"     { spawn "show-keybindings-niri"; }  // Mostrar ayuda de teclas
 	"Mod+Return" { spawn "kitty"; }
 	"Mod+space"  { spawn "rofi" "-show" "run"; }
     // Keys consist of modifiers separated by + signs, followed by an XKB key name
@@ -348,7 +353,7 @@ binds {
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
     Mod+T hotkey-overlay-title="Open a Terminal: alacritty" { spawn "alacritty"; }
-    Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
+    Mod+D hotkey-overlay-title="Run an Application: rofi" { spawn "rofi" "-show" "run"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
@@ -576,9 +581,9 @@ binds {
     // Mod+Space       { switch-layout "next"; }
     // Mod+Shift+Space { switch-layout "prev"; }
 
-    Print { screenshot; }
-    Ctrl+Print { screenshot-screen; }
-    Alt+Print { screenshot-window; }
+    // Screenshots con hyprshot (igual que Hyprland)
+    Print { spawn-sh "hyprshot -m window -o ~/Images/Screenshots -f \"screenshot_window_$(date +%Y%m%d_%H%M%S).png\""; }
+    Shift+Print { spawn-sh "hyprshot -m region -o ~/Images/Screenshots -f \"screenshot_region_$(date +%Y%m%d_%H%M%S).png\""; }
 
     // Applications such as remote-desktop clients and software KVM switches may
     // request that niri stops processing the keyboard shortcuts defined here
