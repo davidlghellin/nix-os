@@ -348,7 +348,7 @@
     maturin
     neovim
     vscode-fhs
-    docker
+    #docker
     meld
     dbeaver-bin
     zathura
@@ -415,6 +415,10 @@
   ## Nix
   ##########################################################################
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  programs.nix-ld = {
+    enable = true;
+  };
 
   # Garbage collection automático
   nix.gc = {
