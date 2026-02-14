@@ -348,6 +348,7 @@
     maturin
     neovim
     vscode-fhs
+    claude-code
     #docker
     meld
     dbeaver-bin
