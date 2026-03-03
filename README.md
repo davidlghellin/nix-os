@@ -8,6 +8,7 @@ Configuración personal de NixOS con Hyprland y Niri como gestores de ventanas.
 .
 ├── configuration.nix          # Configuración principal de NixOS
 ├── hardware-configuration.nix # Configuración de hardware
+├── nvidia.nix                 # Configuración NVIDIA (opcional)
 ├── .zshrc                     # Configuración de Zsh
 └── dotfiles/                  # Dotfiles gestionados con GNU Stow
     ├── hypr/                  # Hyprland (compositor Wayland)
@@ -61,6 +62,31 @@ for dir in dotfiles/*/; do stow -d dotfiles -t ~ "$(basename "$dir")"; done
 ```bash
 cp ~/nix-os/.zshrc ~/
 source ~/.zshrc
+```
+
+## ⚠️ NVIDIA (Importante)
+
+La configuración de NVIDIA está separada en `nvidia.nix` para poder reutilizar la configuración en ordenadores con o sin NVIDIA.
+
+**En portátiles CON NVIDIA** (como hades):
+```nix
+imports = [
+  ./hardware-configuration.nix
+  ./nvidia.nix  # Activo
+];
+```
+
+**En portátiles SIN NVIDIA**:
+```nix
+imports = [
+  ./hardware-configuration.nix
+  # ./nvidia.nix  # Comentar esta línea
+];
+```
+
+**Nota**: Los `intelBusId` y `nvidiaBusId` en `nvidia.nix` son específicos de cada máquina. Para encontrar los IDs correctos:
+```bash
+lspci | grep -E "VGA|3D"
 ```
 
 ## ⚙️ Características

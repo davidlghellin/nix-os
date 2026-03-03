@@ -6,6 +6,7 @@
   ##########################################################################
   imports = [
     ./hardware-configuration.nix
+    ./nvidia.nix  # Comentar esta línea en PCs sin NVIDIA
   ];
 
   ##########################################################################
@@ -105,7 +106,8 @@
   ##########################################################################
   ## Display / Wayland
   ##########################################################################
-  services.xserver.enable = false;
+  services.xserver.enable = true;  # Necesario para cargar drivers NVIDIA
+  services.xserver.xkb.layout = "es";
 
   services.displayManager.sddm = {
     enable = true;
@@ -156,7 +158,7 @@
     NIXOS_OZONE_WL = "1";
     OZONE_PLATFORM = "wayland";
     QT_QPA_PLATFORM = "wayland;xcb";
-    SDL_VIDEODRIVER = "wayland";
+    #SDL_VIDEODRIVER = "wayland,x11";
     CLUTTER_BACKEND = "wayland";
     MOZ_ENABLE_WAYLAND = "1";
   };
@@ -317,6 +319,9 @@
     networkmanagerapplet
     protonvpn-gui
 
+    ## Gaming / Wine
+    winetricks
+
     ## Apps
     brave
     firefox
@@ -411,6 +416,16 @@
     allowedTCPPorts = [ 51413 8200 9091 ];
     allowedUDPPorts = [ 51413 ];
   };
+
+
+
+programs.steam = {
+  enable = true;
+  package = pkgs.steam.override {
+    extraArgs = "--enable-gpu --enable-gpu-compositing";
+  };
+};
+
 
   ##########################################################################
   ## Nix
