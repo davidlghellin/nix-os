@@ -325,7 +325,7 @@
     ## Apps
     brave
     firefox
-    telegram-desktop
+    #telegram-desktop
     obsidian
     libreoffice-qt6-fresh
     calibre
@@ -426,6 +426,16 @@ programs.steam = {
   };
 };
 
+
+  ##########################################################################
+  ## Rust (auto-fix rustup si está roto)
+  ##########################################################################
+  system.activationScripts.rustup-check = ''
+    if ! /run/wrappers/bin/su wizord -c "${pkgs.rustup}/bin/rustup show active-toolchain" &>/dev/null; then
+      echo "Rustup sin default configurado, configurando nightly..."
+      /run/wrappers/bin/su wizord -c "${pkgs.rustup}/bin/rustup default nightly" || true
+    fi
+  '';
 
   ##########################################################################
   ## Nix
