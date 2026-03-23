@@ -5,7 +5,7 @@
   ## Imports
   ##########################################################################
   imports = [
-    ./hardware-configuration.nix
+    /etc/nixos/hardware-configuration.nix
     ./nvidia.nix  # Comentar esta línea en PCs sin NVIDIA
   ];
 
@@ -15,6 +15,13 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 5;  # Limita las generaciones en el menú de boot
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # Plymouth (splash screen de arranque/apagado)
+  boot.plymouth = {
+    enable = true;
+    theme = "bgrt";  # Tema minimalista con logo del fabricante
+  };
+  boot.initrd.systemd.enable = true;  # Necesario para Plymouth
 
   ##########################################################################
   ## Networking
@@ -112,6 +119,12 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
+    theme = "pixie";
+    extraPackages = with pkgs; [
+      kdePackages.qt5compat
+      kdePackages.qtdeclarative
+      kdePackages.qtsvg
+    ];
   };
 
   programs.hyprland = {
@@ -166,10 +179,13 @@
   ##########################################################################
   ## Users
   ##########################################################################
+  users.groups.media = {};  # Grupo compartido para servicios multimedia
+
   users.users.wizord = {
     isNormalUser = true;
     description = "David López";
     shell = pkgs.zsh;
+    homeMode = "711";  # Permite a otros atravesar el directorio home
     extraGroups = [
       "wheel"
       "networkmanager"
@@ -179,6 +195,7 @@
       "video"
       "seat"
       "docker"
+      "media"
     ];
   };
 
@@ -213,10 +230,16 @@
   ];
 
   ##########################################################################
-  ## GTK Theme (Minimalista)
+  ## GTK/Qt Theme (Catppuccin Mocha)
   ##########################################################################
   environment.variables = {
-    GTK_THEME = "Nordic";
+    GTK_THEME = "catppuccin-mocha-blue-standard+default";
+  };
+
+  qt = {
+    enable = true;
+    platformTheme = "gtk2";
+    style = "gtk2";
   };
 
   ##########################################################################
@@ -309,6 +332,9 @@
     libnotify
     swaynotificationcenter
 
+    ## OSD (On-Screen Display)
+    swayosd
+
     ## Bluetooth
     bluez
     bluez-tools
@@ -323,6 +349,7 @@
     winetricks
 
     ## Apps
+    qalculate-gtk  # Calculadora para scratchpad
     brave
     firefox
     #telegram-desktop
@@ -335,10 +362,28 @@
     udiskie
     radiotray-ng
 
-    ## Temas (Minimalista)
-    nordic
-    papirus-icon-theme
-    bibata-cursors
+    ## Temas (Catppuccin Mocha)
+    catppuccin-gtk
+    catppuccin-cursors.mochaBlue
+    tela-icon-theme
+    colloid-icon-theme
+    numix-icon-theme
+
+    ## SDDM Theme
+    (stdenv.mkDerivation {
+      pname = "sddm-theme-pixie";
+      version = "1.0.0";
+      src = fetchFromGitHub {
+        owner = "xCaptaiN09";
+        repo = "pixie-sddm";
+        rev = "main";
+        sha256 = "sha256-lmE/49ySuAZDh5xLochWqfSw9qWrIV+fYaK5T2Ckck8=";
+      };
+      installPhase = ''
+        mkdir -p $out/share/sddm/themes/pixie
+        cp -r . $out/share/sddm/themes/pixie
+      '';
+    })
 
     ## Dev
     gcc
@@ -385,7 +430,7 @@
     };
   };
 
-  users.users.minidlna.extraGroups = [ "users" "wizord" ];
+  users.users.minidlna.extraGroups = [ "users" "media" ];
 
   ##########################################################################
   ## Transmission

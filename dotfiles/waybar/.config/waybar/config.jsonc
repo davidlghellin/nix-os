@@ -38,7 +38,7 @@
 "custom/exit": {
   "format": "⏻",
   "tooltip": "Power menu",
-  "on-click": "wlogout"
+  "on-click": "/home/wizord/bin/wlogout-custom"
 },
 
 	"group/misc": {

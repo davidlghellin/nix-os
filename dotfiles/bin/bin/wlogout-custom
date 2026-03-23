@@ -1,0 +1,2 @@
+#!/bin/sh
+wlogout -l ~/.config/wlogout/layout -C ~/.config/wlogout/style.css -b 5 -r 1 -c 5 -m 400 -T 400 -B 400

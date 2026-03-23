@@ -1,33 +1,51 @@
+/* Catppuccin Mocha */
 * {
-  background-image: none;
-  box-shadow: none;
+    font-family: "JetBrainsMono Nerd Font", monospace;
 }
 
 window {
-  background-color: rgba(14, 17, 21, 0.70);
+    background-color: rgba(30, 30, 46, 0.85);
 }
 
 button {
-  color: #b3b7bd;
-  background-color: rgba(23, 28, 33, 0.95);
-  border-radius: 12px;
-  border: 2px solid rgba(16, 16, 16, 1);
-
-  margin: 18px;
-  padding: 18px;
-  font-size: 16px;
-
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 40%;
+    color: #cdd6f4;
+    background-color: #313244;
+    border: 2px solid #45475a;
+    border-radius: 12px;
+    margin: 8px;
+    font-size: 14px;
+    min-width: 120px;
+    min-height: 120px;
+    background-repeat: no-repeat;
+    background-position: center 30%;
+    background-size: 40%;
 }
 
-button:hover {
-  background-color: rgba(120, 184, 146, 1);
-  color: rgba(23, 28, 33, 1);
-  border-color: rgba(120, 184, 146, 1);
+button:hover, button:focus {
+    background-color: #45475a;
 }
 
-button:focus {
-  outline: none;
+#lock {
+    background-image: url("/home/wizord/.config/wlogout/icons/lock.png");
 }
+#lock:hover { border-color: #89b4fa; }
+
+#logout {
+    background-image: url("/home/wizord/.config/wlogout/icons/logout.png");
+}
+#logout:hover { border-color: #cba6f7; }
+
+#suspend {
+    background-image: url("/home/wizord/.config/wlogout/icons/suspend.png");
+}
+#suspend:hover { border-color: #f9e2af; }
+
+#reboot {
+    background-image: url("/home/wizord/.config/wlogout/icons/reboot.png");
+}
+#reboot:hover { border-color: #a6e3a1; }
+
+#shutdown {
+    background-image: url("/home/wizord/.config/wlogout/icons/shutdown.png");
+}
+#shutdown:hover { border-color: #f38ba8; }
