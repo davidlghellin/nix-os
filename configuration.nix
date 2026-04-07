@@ -16,6 +16,12 @@
   boot.loader.systemd-boot.configurationLimit = 5;  # Limita las generaciones en el menú de boot
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Prevent phantom /dev/dri/card0 from simpledrm (fixes gpu-screen-recorder)
+  boot.blacklistedKernelModules = [ "simpledrm" ];
+
+  # Módulos para lector de tarjetas SD
+  boot.kernelModules = [ "sdhci" "sdhci_pci" ];
+
   # Plymouth (splash screen de arranque/apagado)
   boot.plymouth = {
     enable = true;
@@ -377,7 +383,7 @@
         owner = "xCaptaiN09";
         repo = "pixie-sddm";
         rev = "main";
-        sha256 = "sha256-lmE/49ySuAZDh5xLochWqfSw9qWrIV+fYaK5T2Ckck8=";
+        sha256 = "sha256-NkjWP/y3kLRjYM0Wr3l7ndbMx3XYxQFXy07C28vrUSU=";
       };
       installPhase = ''
         mkdir -p $out/share/sddm/themes/pixie
