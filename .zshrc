@@ -44,4 +44,39 @@ setopt HIST_IGNORE_SPACE
 setopt HIST_FIND_NO_DUPS
 setopt HIST_SAVE_NO_DUPS
 
+# Función para descomprimir archivos
+# Uso: extract archivo.zip [contraseña]
+extract() {
+  if [[ -z "$1" ]]; then
+    echo "Uso: extract <archivo> [contraseña]"
+    return 1
+  fi
+
+  if [[ ! -f "$1" ]]; then
+    echo "Error: '$1' no existe"
+    return 1
+  fi
+
+  local pass_arg=""
+  [[ -n "$2" ]] && pass_arg="-p$2"
+
+  # Intentar con 7z primero
+  if 7z x $pass_arg "$1" 2>/dev/null; then
+    return 0
+  fi
+
+  # Si falla y es RAR, usar unrar con nix-shell
+  if [[ "$1" == *.rar || "$1" == *.RAR ]]; then
+    echo "7z falló, usando unrar..."
+    if [[ -n "$2" ]]; then
+      NIXPKGS_ALLOW_UNFREE=1 nix-shell -p unrar --run "unrar x -p$2 '$1'"
+    else
+      NIXPKGS_ALLOW_UNFREE=1 nix-shell -p unrar --run "unrar x '$1'"
+    fi
+  else
+    echo "Error: No se pudo extraer '$1'"
+    return 1
+  fi
+}
+
 nitch
