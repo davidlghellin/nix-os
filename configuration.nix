@@ -388,6 +388,7 @@
       installPhase = ''
         mkdir -p $out/share/sddm/themes/pixie
         cp -r . $out/share/sddm/themes/pixie
+        cp ${/home/wizord/Images/plant.jpg} $out/share/sddm/themes/pixie/assets/background.jpg
       '';
     })
 
