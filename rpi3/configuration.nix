@@ -73,23 +73,56 @@
     };
   };
 
-  # MiniDLNA - arranca aunque el disco no esté montado
-  services.minidlna = {
-    enable = true;
-    openFirewall = true;
-    settings = {
-      friendly_name = "myoboku";
-      media_dir = [ "/mnt/media" ];
-      inotify = "yes";
-    };
-  };
+  # TODO: descomentar cuando tengas cargador bueno + disco
 
-  # Mount del disco externo (nofail = arranca sin él)
-  fileSystems."/mnt/media" = {
-    device = "/dev/disk/by-label/MEDIA";  # Cambia por la label/UUID de tu disco
-    fsType = "ext4";  # Cambia si es otro formato
-    options = [ "nofail" "x-systemd.device-timeout=5s" ];
-  };
+  # # MiniDLNA - arranca aunque el disco no esté montado
+  # services.minidlna = {
+  #   enable = true;
+  #   openFirewall = true;
+  #   settings = {
+  #     friendly_name = "myoboku";
+  #     media_dir = [ "/mnt/media" ];
+  #     inotify = "yes";
+  #   };
+  # };
+
+  # # Samba - compartir archivos por red
+  # services.samba = {
+  #   enable = true;
+  #   openFirewall = true;
+  #   settings = {
+  #     global = {
+  #       "workgroup" = "WORKGROUP";
+  #       "server string" = "myoboku";
+  #       "security" = "user";
+  #     };
+  #     media = {
+  #       "path" = "/mnt/media";
+  #       "browseable" = "yes";
+  #       "read only" = "no";
+  #       "valid users" = "wizord";
+  #     };
+  #   };
+  # };
+
+  # # Transmission - torrent con web UI
+  # services.transmission = {
+  #   enable = true;
+  #   openFirewall = true;
+  #   settings = {
+  #     download-dir = "/mnt/media/descargas";
+  #     incomplete-dir = "/mnt/media/descargas/.incomplete";
+  #     rpc-bind-address = "0.0.0.0";
+  #     rpc-whitelist-enabled = false;
+  #   };
+  # };
+
+  # # Mount del disco externo (nofail = arranca sin él)
+  # fileSystems."/mnt/media" = {
+  #   device = "/dev/disk/by-label/MEDIA";
+  #   fsType = "ext4";
+  #   options = [ "nofail" "x-systemd.device-timeout=5s" ];
+  # };
 
   ##########################################################################
   ## Packages
@@ -99,6 +132,7 @@
     htop
     git
     ranger
+    fastfetch
   ];
 
   # Zsh + Oh My Zsh
