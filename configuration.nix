@@ -12,6 +12,9 @@
   ##########################################################################
   ## Boot
   ##########################################################################
+  # Cross-compile para Raspberry Pi 3 (aarch64)
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 5;  # Limita las generaciones en el menú de boot
   boot.loader.efi.canTouchEfiVariables = true;
@@ -35,6 +38,9 @@
   networking = {
     hostName = "hades";
     networkmanager.enable = true;
+    extraHosts = ''
+      192.168.1.153 myoboku-mostoles
+    '';
   };
 
   ##########################################################################
