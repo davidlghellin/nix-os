@@ -337,7 +337,7 @@
     cmus
     mpv
     vlc
-    yt-dlp
+    #yt-dlp
     streamripper
 
     ## Notifications
@@ -355,15 +355,14 @@
     ## Network / VPN
     networkmanager
     networkmanagerapplet
-    protonvpn-gui
 
     ## Gaming / Wine
     winetricks
 
     ## Apps
     qalculate-gtk  # Calculadora para scratchpad
-    brave
-    firefox
+    #brave
+    #firefox
     #telegram-desktop
     obsidian
     libreoffice-qt6-fresh
@@ -422,8 +421,12 @@
     watson
 
     ## Desde unstable para tener siempre la última versión
+    unstable.brave
     unstable.claude-code
+    unstable.firefox
+    unstable.proton-vpn
     unstable.sail
+    unstable.yt-dlp
   ];
 
   ##########################################################################
