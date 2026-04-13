@@ -276,8 +276,6 @@
     zip
     unzip
     p7zip
-    yt-dlp
-
     # Git / CLI extra
     tig
     httpie
@@ -494,12 +492,15 @@
   };
 
   ##########################################################################
-  ## Firewall (abierto a propósito)
+  ## Firewall
+  ## Para saber si un servicio soporta openFirewall:
+  ##   nixos-option services.<nombre>.openFirewall
+  ## MiniDLNA lo soporta, se podría quitar el puerto 8200 manual con:
+  ##   services.minidlna.openFirewall = true;
   ##########################################################################
   networking.firewall = {
-    enable = false;
-    allowedTCPPorts = [ 51413 8200 9091 ];
-    allowedUDPPorts = [ 51413 ];
+    enable = true;
+    allowedTCPPorts = [ 8200 ];
   };
 
 
