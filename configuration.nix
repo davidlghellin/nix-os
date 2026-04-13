@@ -411,7 +411,6 @@
     maturin
     neovim
     vscode-fhs
-    claude-code
     #docker
     meld
     dbeaver-bin
@@ -422,7 +421,8 @@
     ## Productivity
     watson
 
-    ## Sail (desde unstable para tener siempre la última versión)
+    ## Desde unstable para tener siempre la última versión
+    unstable.claude-code
     unstable.sail
   ];
 
