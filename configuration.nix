@@ -421,6 +421,9 @@
 
     ## Productivity
     watson
+
+    ## Sail (desde unstable para tener siempre la última versión)
+    unstable.sail
   ];
 
   ##########################################################################
@@ -533,6 +536,15 @@ programs.steam = {
   };
 
   nixpkgs.config.allowUnfree = true;
+
+  # Overlay para paquetes de unstable
+  nixpkgs.overlays = [
+    (final: prev: {
+      unstable = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") {
+        config.allowUnfree = true;
+      };
+    })
+  ];
 
   ##########################################################################
   ## State version
