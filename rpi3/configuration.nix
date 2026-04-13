@@ -133,6 +133,7 @@
     git
     ranger
     fastfetch
+    libraspberrypi  # vcgencmd para diagnóstico (throttling, voltaje, etc.)
   ];
 
   # Zsh + Oh My Zsh
@@ -147,6 +148,10 @@
     };
   };
   users.defaultUserShell = pkgs.zsh;
+
+  # Watchdog: reinicio automático si el sistema se cuelga
+  systemd.watchdog.runtimeTime = "30s";
+  systemd.watchdog.rebootTime = "60s";
 
   # Optimización para RPi 3 (1GB RAM)
   zramSwap = {
