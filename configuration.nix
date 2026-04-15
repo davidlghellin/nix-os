@@ -221,6 +221,54 @@
     autosuggestions.enable = true;
     syntaxHighlighting.enable = true;
 
+    shellAliases = {
+      cat = "bat -pp";
+      vi = "nvim";
+      vim = "nvim";
+      ls = "eza --long --header";
+      top = "btop";
+      ".." = "cd ..";
+      "..." = "cd ../..";
+      df = "dysk";
+      ports = "ss -tulnp";
+      pbcopy = "wl-copy";
+      pbpaste = "wl-paste";
+      youtube = "yt-dlp -x --audio-format mp3 --audio-quality 0";
+      # wifi-scan → rescan + list
+      # wifi-connect RED password "PASSSS"
+      # wifi-connect RED --ask
+      wifi-scan = "nmcli device wifi rescan && nmcli device wifi list";
+      wifi-connect = "nmcli device wifi connect";
+    };
+
+    interactiveShellInit = ''
+      nrs() { sudo nixos-rebuild switch --upgrade |& nom; }
+      RPROMPT='%F{yellow}%*%f'
+
+      extract() {
+        if [[ -z "$1" ]]; then
+          echo "Uso: extract <archivo> [contraseña]"
+          return 1
+        fi
+        if [[ ! -f "$1" ]]; then
+          echo "Error: '$1' no existe"
+          return 1
+        fi
+        local pass_arg=""
+        [[ -n "$2" ]] && pass_arg="-p$2"
+        if 7z x $pass_arg "$1" 2>/dev/null; then
+          return 0
+        fi
+        if [[ "$1" == *.rar || "$1" == *.RAR ]]; then
+          echo "7z falló, usando unrar..."
+          NIXPKGS_ALLOW_UNFREE=1 nix-shell -p unrar --run "unrar x $pass_arg $1"
+        else
+          echo "Error: No se pudo extraer '$1'"
+          return 1
+        fi
+      }
+    '';
+
     ohMyZsh = {
       enable = true;
       theme = "agnoster";
@@ -425,6 +473,9 @@
     unstable.proton-vpn
     unstable.sail
     unstable.yt-dlp
+
+    ## System
+    nix-output-monitor
   ];
 
   ##########################################################################
@@ -527,6 +578,7 @@ programs.steam = {
   ## Nix
   ##########################################################################
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
 
   programs.nix-ld = {
     enable = true;
