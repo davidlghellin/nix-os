@@ -524,7 +524,7 @@ in
   ##########################################################################
   ## Disco externo disk_dlg
   ##########################################################################
-  fileSystems."/mnt/disk_dlg" = {
+  fileSystems."/media/disk_dlg" = {
     device = "/dev/disk/by-uuid/d15c7085-bd18-4bc0-a0ef-963275396cd9";
     fsType = "ext4";
     options = [ "nofail" "x-systemd.automount" "x-systemd.device-timeout=5s" ];
@@ -538,7 +538,7 @@ in
     settings = {
       media_dir = [
         "V,/home/wizord/multimedia/Torrents"
-        "/mnt/disk_dlg"
+        "/media/disk_dlg"
       ];
       friendly_name = "${host.hostname} - Nixos Server";
       inotify = "yes";
