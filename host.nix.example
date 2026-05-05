@@ -17,4 +17,7 @@
 
   # true en máquinas con GPU NVIDIA (carga ./nvidia.nix con drivers, PRIME, etc.)
   hasNvidia = false;
+
+  # true para activar AdGuard Home local (DNS adblock en 127.0.0.1, web UI en :3000)
+  hasAdblock = false;
 }

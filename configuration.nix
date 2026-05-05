@@ -6,7 +6,7 @@ let
   host =
     if builtins.pathExists /etc/nixos/host.nix
     then import /etc/nixos/host.nix
-    else { hostname = "nixos"; hasNvidia = false; };
+    else { hostname = "nixos"; hasNvidia = false; hasAdblock = false; };
 in
 {
   ##########################################################################
@@ -49,6 +49,26 @@ in
       192.168.1.153 myoboku-mostoles
     '';
   };
+
+  ##########################################################################
+  ## Adblock local (AdGuard Home en 127.0.0.1)
+  ## Web UI: http://localhost:3000  (primer arranque: crear usuario y listas)
+  ##########################################################################
+  services.adguardhome = lib.mkIf host.hasAdblock {
+    enable = true;
+    mutableSettings = true;  # permite cambios desde la web UI
+    settings = {
+      http.address = "127.0.0.1:3000";
+      dns = {
+        bind_hosts = [ "127.0.0.1" ];
+        port = 53;
+        upstream_dns = [ "1.1.1.1" "8.8.8.8" ];
+      };
+    };
+  };
+
+  networking.nameservers = lib.mkIf host.hasAdblock [ "127.0.0.1" ];
+  networking.networkmanager.insertNameservers = lib.mkIf host.hasAdblock [ "127.0.0.1" ];
 
   ##########################################################################
   ## Locale / Time
