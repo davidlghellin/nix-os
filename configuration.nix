@@ -67,7 +67,7 @@ in
     settings = {
       http.address = "127.0.0.1:3000";
       dns = {
-        bind_hosts = [ "127.0.0.1" ];
+        bind_hosts = [ "0.0.0.0" ];
         port = 53;
         upstream_dns = [ "1.1.1.1" "8.8.8.8" ];
       };
@@ -636,8 +636,9 @@ in
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 8200 51413 ]
-      ++ lib.optionals host.hasAdblock [ 80 ];  # Caddy reverse proxy
-    allowedUDPPorts = [ 51413 ];  # BitTorrent DHT / μTP
+      ++ lib.optionals host.hasAdblock [ 80 53 ];  # Caddy + AdGuard DNS
+    allowedUDPPorts = [ 51413 ]
+      ++ lib.optionals host.hasAdblock [ 53 ];  # AdGuard DNS
   };
 
   ##########################################################################
