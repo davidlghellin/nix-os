@@ -7,6 +7,10 @@ let
     if builtins.pathExists /etc/nixos/host.nix
     then import /etc/nixos/host.nix
     else { hostname = "nixos"; hasNvidia = false; hasAmd = false; hasAdblock = false; };
+
+  # Dominio local derivado del hostname (DNS en lowercase).
+  # Genera URLs tipo http://jellyfin.korriban, http://torrents.korriban, etc.
+  domain = lib.toLower host.hostname;
 in
 {
   ##########################################################################
@@ -48,6 +52,8 @@ in
     networkmanager.enable = true;
     extraHosts = ''
       192.168.1.153 myoboku-mostoles
+    '' + lib.optionalString host.hasAdblock ''
+      127.0.0.1 jellyfin.${domain} torrents.${domain} adguard.${domain} dlna.${domain}
     '';
   };
 
@@ -70,6 +76,28 @@ in
 
   networking.nameservers = lib.mkIf host.hasAdblock [ "127.0.0.1" ];
   networking.networkmanager.insertNameservers = lib.mkIf host.hasAdblock [ "127.0.0.1" ];
+
+  ##########################################################################
+  ## Caddy reverse proxy (URLs limpias para servicios locales)
+  ## Solo en el server (hasAdblock = true).
+  ## URLs:
+  ##   http://jellyfin.${domain}  → :8096
+  ##   http://torrents.${domain}  → :9091
+  ##   http://adguard.${domain}   → :3000
+  ##   http://dlna.${domain}      → :8200
+  ## Para que resuelvan en la LAN:
+  ##   1. Reservar IP fija de este host en el router.
+  ##   2. AdGuard escuchando en LAN (bind_hosts = "0.0.0.0", abrir puerto 53).
+  ##   3. AdGuard DNS Rewrites: *.${domain} → IP fija del host.
+  ##   4. Router: repartir la IP del host como DNS por DHCP.
+  ##########################################################################
+  services.caddy = lib.mkIf host.hasAdblock {
+    enable = true;
+    virtualHosts."http://jellyfin.${domain}".extraConfig = "reverse_proxy localhost:8096";
+    virtualHosts."http://torrents.${domain}".extraConfig = "reverse_proxy localhost:9091";
+    virtualHosts."http://adguard.${domain}".extraConfig  = "reverse_proxy localhost:3000";
+    virtualHosts."http://dlna.${domain}".extraConfig     = "reverse_proxy localhost:8200";
+  };
 
   ##########################################################################
   ## Locale / Time
@@ -554,7 +582,7 @@ in
         "V,/home/wizord/multimedia/Torrents"
         "/media/disk_dlg"
       ];
-      friendly_name = "${host.hostname} - Nixos Server";
+      friendly_name = host.hostname;
       inotify = "yes";
       notify_interval = 900;
       port = 8200;
@@ -591,6 +619,7 @@ in
       rpc-enabled = true;
       rpc-bind-address = "0.0.0.0";
       rpc-whitelist-enabled = false;
+      rpc-host-whitelist-enabled = false;
       umask = 2;
       download-queue-enabled = true;
       download-queue-size = 5;
@@ -606,7 +635,8 @@ in
   ##########################################################################
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 8200 ];
+    allowedTCPPorts = [ 8200 ]
+      ++ lib.optionals host.hasAdblock [ 80 ];  # Caddy reverse proxy
   };
 
   ##########################################################################
