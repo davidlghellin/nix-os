@@ -1,13 +1,20 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  # Configuración per-máquina. Cada equipo tiene su propio /etc/nixos/host.nix
+  # (NO se sube al repo). Plantilla en host.nix.example.
+  host =
+    if builtins.pathExists /etc/nixos/host.nix
+    then import /etc/nixos/host.nix
+    else { hostname = "nixos"; hasNvidia = false; };
+in
 {
   ##########################################################################
   ## Imports
   ##########################################################################
   imports = [
     /etc/nixos/hardware-configuration.nix
-    ./nvidia.nix  # Comentar esta línea en PCs sin NVIDIA
-  ];
+  ] ++ lib.optional host.hasNvidia ./nvidia.nix;
 
   ##########################################################################
   ## Boot
@@ -36,7 +43,7 @@
   ## Networking
   ##########################################################################
   networking = {
-    hostName = "hades";
+    hostName = host.hostname;
     networkmanager.enable = true;
     extraHosts = ''
       192.168.1.153 myoboku-mostoles
@@ -125,8 +132,21 @@
   ##########################################################################
   ## Display / Wayland
   ##########################################################################
-  services.xserver.enable = true;  # Necesario para cargar drivers NVIDIA
+  services.xserver.enable = true;  # Necesario para xkb layout y carga de drivers de vídeo
   services.xserver.xkb.layout = "es";
+
+  # Soporte gráfico (Vulkan + 32-bit para Steam/Wine, válido en Intel/AMD/NVIDIA)
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      vulkan-loader
+      vulkan-tools
+    ];
+    extraPackages32 = with pkgs.pkgsi686Linux; [
+      vulkan-loader
+    ];
+  };
 
   services.displayManager.sddm = {
     enable = true;
@@ -451,8 +471,8 @@
       src = fetchFromGitHub {
         owner = "xCaptaiN09";
         repo = "pixie-sddm";
-        rev = "main";
-        sha256 = "sha256-NkjWP/y3kLRjYM0Wr3l7ndbMx3XYxQFXy07C28vrUSU=";
+        rev = "730072544f3785c43eb05674c334a7d0fb07681b";
+        sha256 = "sha256-1PDWX8bJfc0HYMW9MsxWwDXDoYy5aaehUWr7FW3yR9U=";
       };
       installPhase = ''
         mkdir -p $out/share/sddm/themes/pixie
@@ -542,6 +562,10 @@
   ##########################################################################
   ## Transmission
   ##########################################################################
+  systemd.tmpfiles.rules = [
+    "d /home/wizord/multimedia/Torrents 0755 wizord users -"
+  ];
+
   services.transmission = {
     enable = true;
     package = pkgs.transmission_4;

@@ -1,0 +1,20 @@
+# Configuración específica de cada máquina.
+#
+# COPIA ESTE FICHERO A /etc/nixos/host.nix EN CADA EQUIPO Y EDÍTALO.
+# NO subir /etc/nixos/host.nix al repo: es único por máquina.
+#
+# Instalación rápida (en cada máquina nueva):
+#   sudo cp /home/wizord/nix-os/host.nix.example /etc/nixos/host.nix
+#   sudo nano /etc/nixos/host.nix    # ajustar hostname y hasNvidia
+#   sudo nixos-rebuild switch
+#
+# Si /etc/nixos/host.nix no existe, configuration.nix usa valores por defecto
+# (hostname = "nixos", hasNvidia = false), por lo que el sistema arranca igual.
+
+{
+  # Nombre del equipo en la red local.
+  hostname = "hades";
+
+  # true en máquinas con GPU NVIDIA (carga ./nvidia.nix con drivers, PRIME, etc.)
+  hasNvidia = false;
+}
