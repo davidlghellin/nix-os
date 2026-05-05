@@ -27,7 +27,11 @@ alias vim='nvim'
 alias ls='eza --long --header'
 alias top='btop'
 alias ctop='docker run --rm -ti  --name=ctop  --volume /var/run/docker.sock:/var/run/docker.sock:ro  quay.io/vektorlab/ctop:latest'
-alias youtube="yt-dlp -x --audio-format mp3 --audio-quality 0" 
+alias youtube="yt-dlp -x --audio-format mp3 --audio-quality 0"
+
+# Stow dotfiles
+alias dots-apply='cd ~/nix-os/dotfiles && for d in */; do stow -v -t ~ "$d"; done && cd -'
+alias dots-restore='cd ~/nix-os/dotfiles && for d in */; do stow -v -R -t ~ "$d"; done && cd -'
 
 
 # wifi
