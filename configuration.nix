@@ -205,7 +205,6 @@ in
     NIXOS_OZONE_WL = "1";
     OZONE_PLATFORM = "wayland";
     QT_QPA_PLATFORM = "wayland;xcb";
-    #SDL_VIDEODRIVER = "wayland,x11";
     CLUTTER_BACKEND = "wayland";
     MOZ_ENABLE_WAYLAND = "1";
   };
@@ -421,7 +420,6 @@ in
     cmus
     mpv
     vlc
-    #yt-dlp
     streamripper
 
     ## Notifications
@@ -445,9 +443,6 @@ in
 
     ## Apps
     qalculate-gtk  # Calculadora para scratchpad
-    #brave
-    #firefox
-    #telegram-desktop
     obsidian
     libreoffice-qt6-fresh
     calibre
@@ -494,7 +489,6 @@ in
     maturin
     neovim
     vscode-fhs
-    #docker
     meld
     dbeaver-bin
     zathura
@@ -510,7 +504,6 @@ in
     unstable.firefox
     unstable.proton-vpn
     unstable.sail
-    #unstable.yt-dlp
 
     ## System
     nix-output-monitor
@@ -595,15 +588,10 @@ in
     allowedTCPPorts = [ 8200 ];
   };
 
-
-
-programs.steam = {
-  enable = true;
-  package = pkgs.steam.override {
-    extraArgs = "--enable-gpu --enable-gpu-compositing";
-  };
-};
-
+  ##########################################################################
+  ## Steam
+  ##########################################################################
+  programs.steam.enable = true;
 
   ##########################################################################
   ## Rust (auto-fix rustup si está roto)
