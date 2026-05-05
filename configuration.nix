@@ -150,6 +150,8 @@
   ## Polkit (Autenticación gráfica)
   ##########################################################################
   security.polkit.enable = true;
+  security.pam.services.sddm.enableGnomeKeyring = true;
+  services.gnome.gnome-keyring.enable = true;
   systemd.user.services.polkit-gnome-authentication-agent-1 = {
     description = "polkit-gnome-authentication-agent-1";
     wantedBy = [ "graphical-session.target" ];
@@ -234,6 +236,7 @@
       pbcopy = "wl-copy";
       pbpaste = "wl-paste";
       youtube = "yt-dlp -x --audio-format mp3 --audio-quality 0";
+      flakenv = ''echo "use flake" > .envrc && direnv allow'';
       # wifi-scan → rescan + list
       # wifi-connect RED password "PASSSS"
       # wifi-connect RED --ask
@@ -279,6 +282,22 @@
   # PATH para scripts gestionados con stow (~/bin)
   environment.shellInit = ''
     export PATH="$HOME/bin:$PATH"
+    export DIRENV_CONFIG="/etc/direnv"
+  '';
+
+  ##########################################################################
+  ## direnv (auto-activa flake.nix / shell.nix al hacer cd)
+  ##########################################################################
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+    silent = false;
+  };
+
+  # Oculta el listado de variables que direnv exporta al cargar el entorno
+  environment.etc."direnv/direnv.toml".text = ''
+    [global]
+    hide_env_diff = true
   '';
 
   ##########################################################################
@@ -325,7 +344,7 @@
     unzip
     p7zip
     # Git / CLI extra
-    tig
+    gitui
     httpie
     xh
     dysk
@@ -338,7 +357,6 @@
 
     ## Terminal / File managers
     kitty
-    ranger
     yazi
 
     ## Wayland / Desktop
@@ -472,7 +490,7 @@
     unstable.firefox
     unstable.proton-vpn
     unstable.sail
-    unstable.yt-dlp
+    #unstable.yt-dlp
 
     ## System
     nix-output-monitor
