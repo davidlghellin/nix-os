@@ -540,11 +540,10 @@ in
         "V,/home/wizord/multimedia/Torrents"
         "/mnt/disk_dlg"
       ];
-      friendly_name = "Nixos Server";
+      friendly_name = "${host.hostname} - Nixos Server";
       inotify = "yes";
       notify_interval = 900;
       port = 8200;
-      network_interface = "wlp2s0";
     };
   };
 
