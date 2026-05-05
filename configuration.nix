@@ -604,8 +604,16 @@ in
   ## Transmission
   ##########################################################################
   systemd.tmpfiles.rules = [
-    "d /home/wizord/multimedia/Torrents 0755 wizord users -"
+    "d /home/wizord/multimedia              0755 wizord users -"
+    "d /home/wizord/multimedia/Torrents     0755 wizord users -"
   ];
+
+  # El servicio falla en boot con "Failed to set up mount namespacing"
+  # si el download-dir no existe todavía. Forzar orden tras tmpfiles.
+  systemd.services.transmission = {
+    after    = [ "systemd-tmpfiles-setup.service" ];
+    requires = [ "systemd-tmpfiles-setup.service" ];
+  };
 
   services.transmission = {
     enable = true;
