@@ -622,7 +622,7 @@ in
       rpc-host-whitelist-enabled = false;
       umask = 2;
       download-queue-enabled = true;
-      download-queue-size = 5;
+      download-queue-size = 3;
     };
   };
 
@@ -635,8 +635,9 @@ in
   ##########################################################################
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 8200 ]
+    allowedTCPPorts = [ 8200 51413 ]
       ++ lib.optionals host.hasAdblock [ 80 ];  # Caddy reverse proxy
+    allowedUDPPorts = [ 51413 ];  # BitTorrent DHT / μTP
   };
 
   ##########################################################################
