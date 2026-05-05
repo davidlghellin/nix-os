@@ -18,6 +18,9 @@
   # true en máquinas con GPU NVIDIA (carga ./nvidia.nix con drivers, PRIME, etc.)
   hasNvidia = false;
 
+  # true en máquinas con GPU/APU AMD (carga ./amd.nix con drivers VAAPI, etc.)
+  hasAmd = false;
+
   # true para activar AdGuard Home local (DNS adblock en 127.0.0.1, web UI en :3000)
   hasAdblock = false;
 }

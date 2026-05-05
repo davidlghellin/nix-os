@@ -6,7 +6,7 @@ let
   host =
     if builtins.pathExists /etc/nixos/host.nix
     then import /etc/nixos/host.nix
-    else { hostname = "nixos"; hasNvidia = false; hasAdblock = false; };
+    else { hostname = "nixos"; hasNvidia = false; hasAmd = false; hasAdblock = false; };
 in
 {
   ##########################################################################
@@ -14,7 +14,8 @@ in
   ##########################################################################
   imports = [
     /etc/nixos/hardware-configuration.nix
-  ] ++ lib.optional host.hasNvidia ./nvidia.nix;
+  ] ++ lib.optional host.hasNvidia ./nvidia.nix
+    ++ lib.optional host.hasAmd ./amd.nix;
 
   ##########################################################################
   ## Boot
