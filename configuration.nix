@@ -413,6 +413,7 @@ in
     p7zip
     # Git / CLI extra
     gitui
+    tig
     httpie
     xh
     dysk
