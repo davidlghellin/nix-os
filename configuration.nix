@@ -58,14 +58,14 @@ in
   };
 
   ##########################################################################
-  ## Adblock local (AdGuard Home en 127.0.0.1)
-  ## Web UI: http://localhost:3000  (primer arranque: crear usuario y listas)
+  ## Adblock local (AdGuard Home, UI expuesta a la LAN)
+  ## Web UI: http://localhost:3000  o  http://<IP-LAN>:3000  (primer arranque: crear usuario y listas)
   ##########################################################################
   services.adguardhome = lib.mkIf host.hasAdblock {
     enable = true;
     mutableSettings = true;  # permite cambios desde la web UI
     settings = {
-      http.address = "127.0.0.1:3000";
+      http.address = "0.0.0.0:3000";
       dns = {
         bind_hosts = [ "0.0.0.0" ];
         port = 53;
@@ -657,7 +657,7 @@ in
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 8200 9091 51413 ]
-      ++ lib.optionals host.hasAdblock [ 80 53 ];  # Caddy + AdGuard DNS
+      ++ lib.optionals host.hasAdblock [ 80 53 3000 ];  # Caddy + AdGuard DNS + AdGuard UI
     allowedUDPPorts = [ 51413 ]
       ++ lib.optionals host.hasAdblock [ 53 ];  # AdGuard DNS
   };
