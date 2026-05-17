@@ -288,7 +288,10 @@ in
 
   programs.zsh = {
     enable = true;
-    autosuggestions.enable = true;
+    autosuggestions = {
+      enable = true;
+      highlightStyle = "fg=#b0b0b0,bold";
+    };
     syntaxHighlighting.enable = true;
 
     shellAliases = {
@@ -318,6 +321,16 @@ in
     '';
 
     interactiveShellInit = ''
+      source ${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh
+      zstyle ':completion:*' menu no
+      zstyle ':fzf-tab:*' switch-group ',' '.'
+      zstyle ':fzf-tab:*' fzf-bindings 'ctrl-/:toggle-preview'
+      zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons=auto $realpath'
+      zstyle ':fzf-tab:complete:(nvim|vim|cat|bat|less):*' fzf-preview 'bat --color=always --style=numbers --line-range=:200 $realpath 2>/dev/null || eza -1 --color=always $realpath'
+      zstyle ':fzf-tab:complete:git-(add|diff|restore|checkout):*' fzf-preview 'git diff --color=always -- $word | head -200'
+      zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'SYSTEMD_COLORS=1 systemctl status $word'
+      zstyle ':fzf-tab:complete:kill:argument-rest' fzf-preview 'ps -p $word -o cmd --no-headers -w -w'
+
       setopt HIST_EXPIRE_DUPS_FIRST
       setopt HIST_IGNORE_DUPS
       setopt HIST_IGNORE_ALL_DUPS
@@ -355,7 +368,7 @@ in
     ohMyZsh = {
       enable = true;
       theme = "agnoster";
-      plugins = [ "git" "docker" "kubectl" "sudo" ];
+      plugins = [ "git" "sudo" "colored-man-pages" ];
     };
   };
 
