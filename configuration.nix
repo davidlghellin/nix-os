@@ -669,7 +669,7 @@ in
   ##########################################################################
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 8200 9091 51413 ]
+    allowedTCPPorts = [ 8200 9091 51413 50051 ]
       ++ lib.optionals host.hasAdblock [ 80 53 3000 ];  # Caddy + AdGuard DNS + AdGuard UI
     allowedUDPPorts = [ 51413 ]
       ++ lib.optionals host.hasAdblock [ 53 ];  # AdGuard DNS
