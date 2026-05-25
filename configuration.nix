@@ -518,7 +518,6 @@ in
 
     ## Apps
     qalculate-gtk  # Calculadora para scratchpad
-    obsidian
     libreoffice-qt6-fresh
     calibre
     vesktop
