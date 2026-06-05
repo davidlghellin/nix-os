@@ -276,7 +276,6 @@ in
       "input"
       "video"
       "seat"
-      "docker"
       "media"
     ];
   };
@@ -417,7 +416,7 @@ in
   ##########################################################################
   ## Virtualisation
   ##########################################################################
-  virtualisation.docker.enable = true;
+  # virtualisation.docker.enable = true;  # deshabilitado: no se usa (0 imágenes/contenedores)
 
   ##########################################################################
   ## System Packages
