@@ -53,7 +53,7 @@ in
     extraHosts = ''
       192.168.1.153 myoboku-mostoles
     '' + lib.optionalString host.hasAdblock ''
-      127.0.0.1 jellyfin.${domain} torrents.${domain} adguard.${domain} dlna.${domain}
+      127.0.0.1 jellyfin.${domain} torrents.${domain} adguard.${domain} dlna.${domain} homepage.${domain}
     '';
   };
 
@@ -85,6 +85,7 @@ in
   ##   http://torrents.${domain}  → :9091
   ##   http://adguard.${domain}   → :3000
   ##   http://dlna.${domain}      → :8200
+  ##   http://homepage.${domain}  → :8082
   ## Para que resuelvan en la LAN:
   ##   1. Reservar IP fija de este host en el router.
   ##   2. AdGuard escuchando en LAN (bind_hosts = "0.0.0.0", abrir puerto 53).
@@ -97,6 +98,74 @@ in
     virtualHosts."http://torrents.${domain}".extraConfig = "reverse_proxy localhost:9091";
     virtualHosts."http://adguard.${domain}".extraConfig  = "reverse_proxy localhost:3000";
     virtualHosts."http://dlna.${domain}".extraConfig     = "reverse_proxy localhost:8200";
+    virtualHosts."http://homepage.${domain}".extraConfig = "reverse_proxy localhost:8082";
+  };
+
+  ##########################################################################
+  ## Homepage (dashboard único con todos los servicios)
+  ## Solo en el server (hasAdblock = true). URL: http://homepage.${domain}
+  ##########################################################################
+  services.homepage-dashboard = lib.mkIf host.hasAdblock {
+    enable = true;
+    listenPort = 8082;
+    # Homepage v0.9+ exige el Host header en la allowlist (la pág. de "Host validation
+    # failed" se sirve con HTTP 200). Vía Caddy llega "homepage.${domain}"; por puerto
+    # directo desde la LAN llega "${domain}:8082".
+    allowedHosts = "homepage.${domain},${domain}:8082,localhost:8082,127.0.0.1:8082";
+
+    settings = {
+      title = "${host.hostname} homelab";
+      theme = "dark";
+      color = "slate";
+      headerStyle = "boxed";
+      layout = {
+        Media = { style = "row"; columns = 3; };
+        Red   = { style = "row"; columns = 2; };
+      };
+    };
+
+    services = [
+      {
+        Media = [
+          { Jellyfin = {
+              href = "http://${domain}:8096";
+              description = "Servidor multimedia";
+              icon = "jellyfin.png";
+          }; }
+          { Transmission = {
+              href = "http://${domain}:9091";
+              description = "Cliente torrent";
+              icon = "transmission.png";
+          }; }
+          { DLNA = {
+              href = "http://${domain}:8200";
+              description = "MiniDLNA";
+              icon = "mdi-cast";
+          }; }
+        ];
+      }
+      {
+        Red = [
+          { "AdGuard Home" = {
+              href = "http://${domain}:3000";
+              description = "DNS adblock";
+              icon = "adguard-home.png";
+          }; }
+        ];
+      }
+    ];
+
+    widgets = [
+      { resources = {
+          cpu = true;
+          memory = true;
+          disk = "/";
+      }; }
+      { search = {
+          provider = "duckduckgo";
+          target = "_blank";
+      }; }
+    ];
   };
 
   ##########################################################################
@@ -668,7 +737,7 @@ in
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 8200 9091 51413 50051 ]
-      ++ lib.optionals host.hasAdblock [ 80 53 3000 ];  # Caddy + AdGuard DNS + AdGuard UI
+      ++ lib.optionals host.hasAdblock [ 80 53 3000 8082 ];  # Caddy + AdGuard DNS + AdGuard UI + Homepage
     allowedUDPPorts = [ 51413 ]
       ++ lib.optionals host.hasAdblock [ 53 ];  # AdGuard DNS
   };
