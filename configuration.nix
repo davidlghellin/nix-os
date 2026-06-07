@@ -111,7 +111,7 @@ in
     # Homepage v0.9+ exige el Host header en la allowlist (la pág. de "Host validation
     # failed" se sirve con HTTP 200). Vía Caddy llega "homepage.${domain}"; por puerto
     # directo desde la LAN llega "${domain}:8082".
-    allowedHosts = "homepage.${domain},${domain}:8082,localhost:8082,127.0.0.1:8082";
+    allowedHosts = "homepage.${domain},${domain}:8082,192.168.1.180:8082,localhost:8082,127.0.0.1:8082";
 
     settings = {
       title = "${host.hostname} homelab";
