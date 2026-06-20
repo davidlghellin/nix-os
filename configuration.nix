@@ -440,6 +440,22 @@ in
     };
   };
 
+  ##########################################################################
+  ## Git (config de sistema → /etc/gitconfig)
+  ## Lo personal (user.name / user.email) se queda en ~/.gitconfig
+  ##########################################################################
+  programs.git = {
+    enable = true;
+    config = {
+      core.pager = "delta";              # diffs/log/show bonitos con delta
+      interactive.diffFilter = "delta --color-only";
+      delta.navigate = true;             # n / N para saltar entre ficheros
+      delta.line-numbers = true;
+      pager.branch = false;              # git branch -v sin pager
+      pager.tag = false;
+    };
+  };
+
   # PATH para scripts gestionados con stow (~/bin)
   environment.shellInit = ''
     export PATH="$HOME/bin:$PATH"
@@ -507,6 +523,7 @@ in
     # Git / CLI extra
     gitui
     tig
+    delta
     httpie
     xh
     dysk
