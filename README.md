@@ -4,12 +4,25 @@ Configuración personal de NixOS con Hyprland y Niri como gestores de ventanas.
 
 ## 📁 Estructura
 
+Config **modular multi-host**: `configuration.nix` es un dispatcher que elige
+`hosts/<hostname>.nix` según el hostname de la máquina, y cada host importa los
+módulos que necesita. Nada de escritorio en el server; nada de server en el portátil.
+
 ```
 .
-├── configuration.nix          # Configuración principal de NixOS
-├── hardware-configuration.nix # Configuración de hardware
-├── nvidia.nix                 # Configuración NVIDIA (opcional)
+├── configuration.nix          # Dispatcher: elige hosts/<hostname>.nix por /etc/hostname
+├── hosts/                     # Un fichero por máquina (qué módulos usa cada una)
+│   ├── korriban.nix           #   server headless → common + server + gpu-amd
+│   ├── hades.nix              #   portátil        → common + desktop (+ gpu)
+│   └── default.nix            #   fallback mínimo → common (máquina de un solo uso)
+├── modules/                   # Bloques reutilizables
+│   ├── common.nix             #   base para TODAS: red, SSH, zsh, git, nix, CLI
+│   ├── desktop.nix            #   escritorio Wayland (Hyprland/Niri, audio, GUI)
+│   ├── server.nix             #   homelab: AdGuard, Caddy, Jellyfin, Transmission…
+│   ├── gpu-amd.nix            #   drivers AMD (VAAPI, transcoding)
+│   └── gpu-nvidia.nix         #   drivers NVIDIA + PRIME
 ├── .zshrc                     # Configuración de Zsh
+├── rpi3/                      # Raspberry Pi 3 (flake propio, aarch64)
 └── dotfiles/                  # Dotfiles gestionados con GNU Stow
     ├── hypr/                  # Hyprland (compositor Wayland)
     ├── niri/                  # Niri (compositor alternativo)
@@ -19,6 +32,10 @@ Configuración personal de NixOS con Hyprland y Niri como gestores de ventanas.
     ├── kitty/                 # Emulador de terminal
     └── bin/                   # Scripts personalizados
 ```
+
+**Máquina nueva:** basta con crear `hosts/<hostname>.nix` importando los módulos
+que quieras. Si no existe, se usa `hosts/default.nix` (base mínima que arranca en
+cualquier sitio). El hostname se busca en minúsculas (`Korriban` → `korriban.nix`).
 
 ## 🚀 Instalación
 

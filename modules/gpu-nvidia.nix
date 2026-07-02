@@ -7,6 +7,10 @@
 
   services.xserver.videoDrivers = [ "nvidia" ];
 
+  # Base de aceleración gráfica (desktop.nix también la habilita; aquí garantiza
+  # que exista aunque este módulo se use en una máquina sin escritorio).
+  hardware.graphics.enable = true;
+
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = true;
