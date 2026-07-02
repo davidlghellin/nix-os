@@ -26,7 +26,10 @@
     };
   };
 
-  users.users.minidlna.extraGroups = [ "users" "media" ];
+  users.users.minidlna.extraGroups = [
+    "users"
+    "media"
+  ];
 
   ##########################################################################
   ## Jellyfin
@@ -77,7 +80,11 @@
   ## (Jellyfin y el peer de Transmission ya se abren con openFirewall.)
   ##########################################################################
   networking.firewall = {
-    allowedTCPPorts = [ 8200 9091 51413 ];
+    allowedTCPPorts = [
+      8200
+      9091
+      51413
+    ];
     allowedUDPPorts = [ 51413 ];
   };
 }

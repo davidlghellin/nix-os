@@ -26,7 +26,10 @@ in
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
   # Módulos para lector de tarjetas SD
-  boot.kernelModules = [ "sdhci" "sdhci_pci" ];
+  boot.kernelModules = [
+    "sdhci"
+    "sdhci_pci"
+  ];
 
   ##########################################################################
   ## Networking (base)
@@ -178,7 +181,11 @@ in
     ohMyZsh = {
       enable = true;
       theme = "agnoster";
-      plugins = [ "git" "sudo" "colored-man-pages" ];
+      plugins = [
+        "git"
+        "sudo"
+        "colored-man-pages"
+      ];
     };
   };
 
@@ -232,9 +239,17 @@ in
   ##########################################################################
   environment.systemPackages = with pkgs; [
     ## CLI / Utils
-    git wget curl
-    ripgrep fd eza bat
-    fzf procs btop htop
+    git
+    wget
+    curl
+    ripgrep
+    fd
+    eza
+    bat
+    fzf
+    procs
+    btop
+    htop
     lsof
     stow
 
@@ -272,7 +287,10 @@ in
   ##########################################################################
   ## Nix
   ##########################################################################
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   programs.nix-ld.enable = true;
 

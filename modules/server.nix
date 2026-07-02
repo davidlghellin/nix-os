@@ -31,7 +31,10 @@ in
       dns = {
         bind_hosts = [ "0.0.0.0" ];
         port = 53;
-        upstream_dns = [ "1.1.1.1" "8.8.8.8" ];
+        upstream_dns = [
+          "1.1.1.1"
+          "8.8.8.8"
+        ];
       };
     };
   };
@@ -135,7 +138,11 @@ in
   fileSystems."/media/disk_dlg" = {
     device = "/dev/disk/by-uuid/d15c7085-bd18-4bc0-a0ef-963275396cd9";
     fsType = "ext4";
-    options = [ "nofail" "x-systemd.automount" "x-systemd.device-timeout=5s" ];
+    options = [
+      "nofail"
+      "x-systemd.automount"
+      "x-systemd.device-timeout=5s"
+    ];
   };
 
   ##########################################################################
@@ -144,7 +151,13 @@ in
   ## (Los puertos de media — 8200/9091/51413 — están en modules/media.nix.)
   ##########################################################################
   networking.firewall = {
-    allowedTCPPorts = [ 50051 80 53 3000 8082 ];
+    allowedTCPPorts = [
+      50051
+      80
+      53
+      3000
+      8082
+    ];
     allowedUDPPorts = [ 53 ];
   };
 }

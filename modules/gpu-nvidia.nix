@@ -29,7 +29,10 @@
   };
 
   # Kernel params para NVIDIA + Wayland
-  boot.kernelParams = [ "nvidia-drm.modeset=1" "nvidia-drm.fbdev=1" ];
+  boot.kernelParams = [
+    "nvidia-drm.modeset=1"
+    "nvidia-drm.fbdev=1"
+  ];
 
   # Driver de aceleración de vídeo específico de NVIDIA
   # (la base de hardware.graphics está en configuration.nix)

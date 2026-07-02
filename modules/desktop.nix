@@ -136,7 +136,10 @@
       pkgs.xdg-desktop-portal-gtk
       pkgs.xdg-desktop-portal-hyprland
     ];
-    config.common.default = [ "hyprland" "gtk" ];
+    config.common.default = [
+      "hyprland"
+      "gtk"
+    ];
   };
 
   ##########################################################################
@@ -153,7 +156,11 @@
   ##########################################################################
   ## Users (grupos extra de escritorio; se suman a los de common.nix)
   ##########################################################################
-  users.users.wizord.extraGroups = [ "input" "video" "seat" ];
+  users.users.wizord.extraGroups = [
+    "input"
+    "video"
+    "seat"
+  ];
 
   ##########################################################################
   ## GTK/Qt Theme (Catppuccin Mocha)
