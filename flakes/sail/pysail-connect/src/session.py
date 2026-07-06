@@ -1,8 +1,9 @@
 """Sesión Sail con auto-detección:
 
 - Si hay un server Spark Connect ya escuchando (p.ej. el systemd de korriban en
-  50051) → se REUSA.
-- Si no hay ninguno → se arranca uno EMBEBIDO con pysail (sin server externo).
+  50051) y responde → se REUSA.
+- Si no hay ninguno (o el puerto está abierto pero no habla Spark Connect) → se
+  arranca uno EMBEBIDO con pysail (sin server externo).
 
 Config por entorno: SAIL_HOST (def. localhost), SAIL_PORT (def. 50051).
 """
@@ -27,6 +28,21 @@ def _is_open(host: str, port: int, timeout: float = 1.0) -> bool:
         return False
 
 
+def _start_embedded():
+    """Arranca un server pysail embebido y devuelve (spark, server)."""
+    from pysail.spark import SparkConnectServer
+
+    server = SparkConnectServer("127.0.0.1", 0)  # localhost, puerto aleatorio
+    server.start(background=True)
+    try:
+        ip, eport = server.listening_address
+        spark = SparkSession.builder.remote(f"sc://{ip}:{eport}").getOrCreate()
+    except Exception:
+        server.stop()  # no dejar el proceso vivo si falla la conexión
+        raise
+    return spark, server
+
+
 def get_session():
     """Devuelve (spark, server, mode).
 
@@ -35,13 +51,13 @@ def get_session():
     """
     host, port = _external()
     if _is_open(host, port):
-        spark = SparkSession.builder.remote(f"sc://{host}:{port}").getOrCreate()
-        return spark, None, "external"
+        try:
+            spark = SparkSession.builder.remote(f"sc://{host}:{port}").getOrCreate()
+            return spark, None, "external"
+        except Exception:
+            # El puerto estaba abierto pero no era un Spark Connect válido:
+            # caemos a modo embebido.
+            pass
 
-    from pysail.spark import SparkConnectServer
-
-    server = SparkConnectServer("127.0.0.1", 0)  # localhost, puerto aleatorio
-    server.start(background=True)
-    ip, eport = server.listening_address
-    spark = SparkSession.builder.remote(f"sc://{ip}:{eport}").getOrCreate()
+    spark, server = _start_embedded()
     return spark, server, "embedded"

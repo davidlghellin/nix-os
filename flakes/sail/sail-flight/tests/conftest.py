@@ -13,10 +13,12 @@ def _uri():
 
 def _reachable(uri: str, timeout: float = 2.0) -> bool:
     u = urlparse(uri)  # grpc://host:port
+    if not u.hostname:
+        return False
     try:
         with socket.create_connection((u.hostname, u.port or 32010), timeout):
             return True
-    except OSError:
+    except (OSError, ValueError):
         return False
 
 

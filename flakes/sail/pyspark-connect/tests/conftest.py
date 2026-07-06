@@ -12,10 +12,12 @@ def _remote():
 
 def _reachable(remote: str, timeout: float = 2.0) -> bool:
     u = urlparse(remote)  # sc://host:port
+    if not u.hostname:
+        return False
     try:
         with socket.create_connection((u.hostname, u.port or 50051), timeout):
             return True
-    except OSError:
+    except (OSError, ValueError):
         return False
 
 
