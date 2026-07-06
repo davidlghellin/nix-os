@@ -6,7 +6,7 @@ contra un server que **ya está corriendo** (p.ej. el servicio systemd en `korri
 - API: **SQL** + tablas **Arrow** (no la API de DataFrames de Spark).
 - El cliente **más ligero**: solo `pyarrow` + `adbc-driver-flightsql`. **Sin pyspark, sin pandas, sin Java.**
 - Deps por **nixpkgs**, sin pip ni venv.
-- Entorno con [numtide/devshell]: al entrar verás un **menú** de comandos (`menu` para reimprimirlo).
+- Entorno con [numtide/devshell](https://github.com/numtide/devshell): al entrar verás un **menú** de comandos (`menu` para reimprimirlo).
 
 ## Requisito
 

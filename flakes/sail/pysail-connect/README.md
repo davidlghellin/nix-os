@@ -9,7 +9,7 @@ Así el mismo entorno vale en korriban (reusa el systemd) y en el portátil sin 
 
 - API: DataFrame de Spark. **Sin Java** (motor Rust de Sail vía pysail).
 - Deps por **nixpkgs**, sin pip ni venv.
-- Entorno con [numtide/devshell]: al entrar verás un **menú** de comandos (`menu` para reimprimirlo).
+- Entorno con [numtide/devshell](https://github.com/numtide/devshell): al entrar verás un **menú** de comandos (`menu` para reimprimirlo).
 
 ## Config
 

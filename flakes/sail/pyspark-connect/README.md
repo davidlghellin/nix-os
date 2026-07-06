@@ -7,7 +7,7 @@ contra un server que **ya está corriendo** (p.ej. el servicio systemd en `korri
 - Deps por **nixpkgs**, sin pip ni venv (y sin el lío de `libstdc++`).
   `pandas`/`pyarrow`/`grpcio` no son opcionales: pyspark connect los exige al importar.
 - Sin Java: es cliente Connect, no un Spark local con JVM.
-- Entorno con [numtide/devshell]: al entrar verás un **menú** de comandos (`menu` para reimprimirlo).
+- Entorno con [numtide/devshell](https://github.com/numtide/devshell): al entrar verás un **menú** de comandos (`menu` para reimprimirlo).
 
 ## Requisito
 
