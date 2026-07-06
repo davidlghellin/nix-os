@@ -85,6 +85,7 @@ in
       layout = {
         Media = { style = "row"; columns = 3; };
         Red   = { style = "row"; columns = 2; };
+        Datos = { style = "row"; columns = 2; };
       };
     };
 
@@ -114,6 +115,22 @@ in
               href = "http://${domain}:3000";
               description = "DNS adblock";
               icon = "adguard-home.png";
+          }; }
+        ];
+      }
+      {
+        Datos = [
+          # Sail: motor compute (gRPC, sin web UI). Tiles informativos:
+          # el href apunta al repo; los endpoints reales son los gRPC.
+          { "Sail · Spark Connect" = {
+              href = "https://github.com/lakehq/sail";
+              description = "sc://${domain}:50051";
+              icon = "si-apachespark";
+          }; }
+          { "Sail · Flight SQL" = {
+              href = "https://github.com/lakehq/sail";
+              description = "${domain}:32010";
+              icon = "si-apachespark";
           }; }
         ];
       }

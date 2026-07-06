@@ -38,6 +38,7 @@ in
     networkmanager.enable = true;
     extraHosts = ''
       192.168.1.153 myoboku-mostoles
+      192.168.1.180 korriban
     '';
     # Firewall activo en todas las máquinas; cada host/módulo añade sus puertos.
     firewall.enable = true;
