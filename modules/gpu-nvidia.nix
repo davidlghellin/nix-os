@@ -7,6 +7,10 @@
 
   services.xserver.videoDrivers = [ "nvidia" ];
 
+  # Base de aceleración gráfica (desktop.nix también la habilita; aquí garantiza
+  # que exista aunque este módulo se use en una máquina sin escritorio).
+  hardware.graphics.enable = true;
+
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = true;
@@ -25,7 +29,10 @@
   };
 
   # Kernel params para NVIDIA + Wayland
-  boot.kernelParams = [ "nvidia-drm.modeset=1" "nvidia-drm.fbdev=1" ];
+  boot.kernelParams = [
+    "nvidia-drm.modeset=1"
+    "nvidia-drm.fbdev=1"
+  ];
 
   # Driver de aceleración de vídeo específico de NVIDIA
   # (la base de hardware.graphics está en configuration.nix)
