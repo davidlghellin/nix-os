@@ -1,0 +1,9 @@
+[project]
+name = "sail-pysail-connect"
+version = "0.1.0"
+requires-python = ">=3.10,<3.15"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v"
