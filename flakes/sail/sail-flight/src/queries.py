@@ -15,5 +15,8 @@ def connect(uri: str):
 def query(conn, sql: str):
     """Ejecuta SQL y devuelve el resultado como pyarrow.Table."""
     cur = conn.cursor()
-    cur.execute(sql)
-    return cur.fetch_arrow_table()
+    try:
+        cur.execute(sql)
+        return cur.fetch_arrow_table()
+    finally:
+        cur.close()

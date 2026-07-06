@@ -129,7 +129,7 @@ in
           }; }
           { "Sail · Flight SQL" = {
               href = "https://github.com/lakehq/sail";
-              description = "${domain}:32010";
+              description = "grpc://${domain}:32010";
               icon = "si-apachespark";
           }; }
         ];
@@ -164,12 +164,11 @@ in
 
   ##########################################################################
   ## Firewall (puertos del server)
-  ## gRPC 50051, Caddy 80, AdGuard DNS 53 + UI 3000, Homepage 8082.
-  ## (Los puertos de media — 8200/9091/51413 — están en modules/media.nix.)
+  ## Caddy 80, AdGuard DNS 53 + UI 3000, Homepage 8082.
+  ## (Sail 50051/32010 → modules/sail.nix; media 8200/9091/51413 → modules/media.nix.)
   ##########################################################################
   networking.firewall = {
     allowedTCPPorts = [
-      50051
       80
       53
       3000

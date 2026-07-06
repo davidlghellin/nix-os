@@ -69,7 +69,8 @@ in
   environment.systemPackages = [ sail ];
 
   ##########################################################################
-  ## Firewall (50051 ya está en server.nix; aquí solo falta Flight SQL)
+  ## Firewall — el módulo abre sus dos puertos (autocontenido: no depende de
+  ## server.nix). Spark Connect + Flight SQL.
   ##########################################################################
-  networking.firewall.allowedTCPPorts = [ flightPort ];
+  networking.firewall.allowedTCPPorts = [ sparkPort flightPort ];
 }
