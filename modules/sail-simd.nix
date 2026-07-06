@@ -23,12 +23,16 @@ let
   sailSimd = pkgs.unstable.sail.overrideAttrs (old: {
     pname = "sail-simd";
 
-    # NUNCA traer este binario de una caché: el hash del store path es idéntico
-    # lo compile la CPU que lo compile (Nix no "ve" target-cpu=native), pero el
-    # binario de dentro depende de la CPU. Sin esto, otra máquina podría hacer
-    # substitute de este mismo hash y recibir instrucciones que su CPU no
-    # soporta → "illegal instruction". Forzamos build local siempre.
+    # NUNCA traer este binario de una caché NI construirlo en un builder remoto:
+    # el hash del store path es idéntico lo compile la CPU que lo compile (Nix no
+    # "ve" target-cpu=native), pero el binario de dentro depende de la CPU. Sin
+    # esto, otra máquina (o un builder remoto con otra CPU) podría producir o
+    # substituir este mismo hash con instrucciones que la CPU destino no soporta
+    # → "illegal instruction".
+    #   - allowSubstitutes = false → nunca bajarlo de una caché.
+    #   - preferLocalBuild = true  → compilarlo en esta máquina, no en un remoto.
     allowSubstitutes = false;
+    preferLocalBuild = true;
 
     env = (old.env or {}) // {
       # `native` = "TODO lo que tiene la CPU que COMPILA". Máximo rendimiento,
