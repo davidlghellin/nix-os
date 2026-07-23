@@ -4,6 +4,11 @@
 ## ESCRITORIO (Wayland: Hyprland + Niri, audio, batería, GUI apps).
 ## Se importa solo en máquinas con pantalla (p.ej. el portátil hades).
 ##############################################################################
+let
+  # Mismo cursor en el login y en la sesión (hyprland.conf pide este tema).
+  cursorTheme = "Bibata-Modern-Ice";
+  cursorSize = 24;
+in
 {
   ##########################################################################
   ## Directorios de usuario que los dotfiles dan por hechos
@@ -103,6 +108,21 @@
     enable = true;
     wayland.enable = true;
     theme = "pixie";
+
+    # Sin CursorTheme el greeter se queda sin cursor visible, y el selector de
+    # sesión del tema pixie es un MouseArea (no recibe foco de teclado), así que
+    # sin ratón no hay forma de cambiar de sesión.
+    settings.Theme = {
+      CursorTheme = cursorTheme;
+      CursorSize = toString cursorSize;
+    };
+
+    # kwin en lugar del weston por defecto: con weston el greeter no pintaba
+    # cursor (ni con [shell] cursor-theme ni con XCURSOR_*), y el tema pixie
+    # tiene el selector de sesión como MouseArea, así que sin cursor no se
+    # puede elegir sesión ni usuario.
+    wayland.compositor = "kwin";
+
     extraPackages = with pkgs; [
       kdePackages.qt5compat
       kdePackages.qtdeclarative
@@ -110,10 +130,25 @@
     ];
   };
 
+  # El greeter es una app Qt y carga el cursor vía XCURSOR_*; el servicio no
+  # hereda esas variables de la sesión de usuario, hay que dárselas aquí.
+  systemd.services.display-manager.environment = {
+    XCURSOR_THEME = cursorTheme;
+    XCURSOR_SIZE = toString cursorSize;
+    XCURSOR_PATH = "/run/current-system/sw/share/icons";
+  };
+
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
   };
+
+  # Sesión fijada a propósito. Desde Hyprland 0.55 (NixOS 26.05) el paquete trae
+  # DOS ficheros de sesión: hyprland.desktop y hyprland-uwsm.desktop. El segundo
+  # ordena antes alfabéticamente ('-' < '.') y SDDM lo elegía, pero sin
+  # `programs.uwsm.enable` sus unidades systemd de usuario no existen
+  # (wayland-session-bindpid@.service) → la sesión muere y no hay escritorio.
+  services.displayManager.defaultSession = "hyprland";
 
   programs.niri.enable = true;
 
@@ -222,10 +257,8 @@
     hyprlock
     hypridle
     hyprpanel
-    swww
-    eww
+    awww
     nwg-look
-    pywal
     brightnessctl
     playerctl
     xdg-desktop-portal-hyprland
@@ -280,14 +313,15 @@
     qalculate-gtk  # Calculadora para scratchpad
     libreoffice-qt6-fresh
     calibre
-    xfce.thunar
-    xfce.thunar-volman
+    thunar
+    thunar-volman
     udiskie
     radiotray-ng
 
     ## Temas (Catppuccin Mocha)
     catppuccin-gtk
     catppuccin-cursors.mochaBlue
+    bibata-cursors               # Bibata-Modern-Ice, el que pide hyprland.conf
     tela-icon-theme
     colloid-icon-theme
     numix-icon-theme
@@ -306,6 +340,11 @@
         mkdir -p $out/share/sddm/themes/pixie
         cp -r . $out/share/sddm/themes/pixie
         cp ${../assets/plant.jpg} $out/share/sddm/themes/pixie/assets/background.jpg
+
+        # Avatar del usuario. Se sustituye el del tema en vez de usar
+        # FacesDir/wizord.face.icon porque pixie exige que la ruta acabe en
+        # extensión de imagen (/\.(jpg|png|...)$/) y ".face.icon" no la pasa.
+        cp ${../assets/drosera.jpg} $out/share/sddm/themes/pixie/assets/avatar.jpg
       '';
     })
 

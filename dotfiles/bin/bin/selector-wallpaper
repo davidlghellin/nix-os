@@ -1,30 +1,47 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WALL_DIR="$HOME/Images"   # o "$HOME/Imagenes" si es tu carpeta real
-
-cd "$WALL_DIR" || { echo "No existe: $WALL_DIR"; exit 1; }
+# Busca en DOS sitios:
+#   - assets/ del repo → versionado, sobrevive a una reinstalación
+#   - ~/Images         → los que dejas a mano, fuera de git
+# Antes solo miraba ~/Images, que en una instalación nueva está vacío
+# (systemd.tmpfiles crea el directorio, no su contenido) y el selector
+# no ofrecía nada.
+WALL_DIRS=( "$HOME/nix-os/assets" "$HOME/Images" )
 
 shopt -s nullglob
-files=( *.jpg *.png *.jpeg *.webp )
+declare -a rutas=()
+for d in "${WALL_DIRS[@]}"; do
+  [ -d "$d" ] || continue
+  for f in "$d"/*.jpg "$d"/*.png "$d"/*.jpeg "$d"/*.webp; do
+    rutas+=( "$f" )
+  done
+done
 shopt -u nullglob
 
-[ ${#files[@]} -gt 0 ] || { echo "No hay imágenes en $WALL_DIR"; exit 0; }
+[ ${#rutas[@]} -gt 0 ] || { echo "No hay imágenes en: ${WALL_DIRS[*]}"; exit 0; }
 
-SELECTED_WALL="$(
-  for f in "${files[@]}"; do
-    printf "%s\0icon\x1f%s\n" "$f" "$WALL_DIR/$f"
+# Se muestra el nombre pero se resuelve la ruta completa, porque puede haber
+# ficheros con el mismo nombre en ambos directorios.
+SELECTED="$(
+  for r in "${rutas[@]}"; do
+    printf "%s\0icon\x1f%s\n" "$(basename "$r")" "$r"
   done | rofi -dmenu -p "Wallpaper"
 )"
 
-if [ -n "${SELECTED_WALL:-}" ]; then
-  img="$WALL_DIR/$SELECTED_WALL"
+if [ -n "${SELECTED:-}" ]; then
+  img=""
+  for r in "${rutas[@]}"; do
+    [ "$(basename "$r")" = "$SELECTED" ] && { img="$r"; break; }
+  done
+  [ -n "$img" ] || { echo "No encuentro: $SELECTED"; exit 1; }
 
   # 1) Wallpaper
-  swww img "$img" --transition-fps 60 --transition-step 255 --transition-type any
+  awww img "$img" --transition-fps 60 --transition-step 255 --transition-type any
 
-  # 2) Paleta (pywal)
-  wal -i "$img"
+  # 2) Paleta (pywal) — DESACTIVADO: recalculaba los colores a partir del
+  # wallpaper y te cambiaba los de la terminal en cada cambio de fondo.
+  # wal -i "$img"
 
   # 3) Guardar selección (persistencia)
   echo "$img" > "$HOME/.cache/current_wallpaper"
