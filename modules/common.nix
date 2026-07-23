@@ -164,6 +164,36 @@ in
       # sudo -v primero: pide la contraseña ANTES del pipe, para que el
       # prompt no se pierda entre el output de nom.
       nrs() { sudo -v && sudo nixos-rebuild switch --flake ~/nix-os#$(hostname | tr 'A-Z' 'a-z') |& nom; }
+
+      # Igual que nrs, pero avisa al terminar con notificación + sonido.
+      # Útil para rebuilds largos (cambio de release, kernel, NVIDIA...).
+      nrs-notify() {
+        sudo -v || return 1
+        sudo nixos-rebuild switch --flake ~/nix-os#$(hostname | tr 'A-Z' 'a-z') |& nom
+
+        # $pipestatus[1] y no $? : con `|& nom` el estado de salida de la
+        # función sería el de nom, que siempre es 0 aunque el rebuild falle.
+        local estado=$pipestatus[1]
+        local sonidos=${pkgs.sound-theme-freedesktop}/share/sounds/freedesktop/stereo
+        local urgencia icono sonido cuerpo
+
+        if (( estado == 0 )); then
+          urgencia=normal;   icono=software-update-available; sonido=complete.oga
+          cuerpo="Rebuild completado"
+        else
+          urgencia=critical; icono=dialog-error;              sonido=dialog-error.oga
+          cuerpo="Rebuild FALLÓ (código $estado)"
+        fi
+
+        # Solo en máquinas con escritorio: korriban es headless y no tiene
+        # libnotify ni pipewire (viven en desktop.nix).
+        if [[ -n "$WAYLAND_DISPLAY$DISPLAY" ]] && command -v notify-send >/dev/null; then
+          notify-send -u $urgencia -i $icono "NixOS · $(hostname)" "$cuerpo"
+          command -v paplay >/dev/null && (paplay $sonidos/$sonido &>/dev/null &)
+        fi
+
+        return $estado
+      }
       RPROMPT='%F{yellow}%*%f %B%F{${promptHostColor}}%m%f%b'
 
       extract() {
@@ -315,6 +345,37 @@ in
   programs.nix-ld.enable = true;
 
   # Garbage collection automático
+  # Deduplicación del store: sustituye ficheros idénticos por hardlinks.
+  # Vía temporizador systemd y no `auto-optimise-store`, que lo hace durante
+  # cada build y las ralentiza. Solo toca /nix/store; jamás /home.
+  nix.optimise = {
+    automatic = true;
+    dates = [ "weekly" ];
+  };
+
+  # Y además incremental: deduplica cada ruta nueva al crearla, sin escanear
+  # el resto del store. Añade algo de latencia a cada build, pero así lo nuevo
+  # nunca espera al repaso semanal. Las dos se complementan.
+  nix.settings.auto-optimise-store = true;
+
+  # GC por presión de disco: si bajan de 5 GiB libres, el daemon libera
+  # hasta llegar a 20 GiB en vez de esperar al GC semanal.
+  nix.settings.min-free = 5 * 1024 * 1024 * 1024;
+  nix.settings.max-free = 20 * 1024 * 1024 * 1024;
+
+  ##########################################################################
+  ## Coredumps acotados
+  ##
+  ## Un crash de waybar durante el switch a 26.05 escribió 23 GB y consumió
+  ## 5,7 GB de RAM antes de que systemd lo matara por timeout. Con estos
+  ## topes un proceso grande deja de poder llenar el disco.
+  ##########################################################################
+  systemd.coredump.settings.Coredump = {
+    ProcessSizeMax = "2G";
+    ExternalSizeMax = "2G";
+    MaxUse = "4G";
+  };
+
   nix.gc = {
     automatic = true;
     dates = "weekly";
