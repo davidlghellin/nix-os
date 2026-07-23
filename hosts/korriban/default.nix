@@ -7,11 +7,12 @@
 ##############################################################################
 {
   imports = [
-    ../modules/common.nix
-    ../modules/server.nix
-    ../modules/media.nix
-    ../modules/gpu-amd.nix
-    ../modules/sail.nix
+    ./hardware.nix
+    ../../modules/common.nix
+    ../../modules/server.nix
+    ../../modules/media.nix
+    ../../modules/gpu-amd.nix
+    ../../modules/sail.nix
   ];
 
   networking.hostName = "Korriban";

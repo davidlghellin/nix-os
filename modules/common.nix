@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 ##############################################################################
 ## COMÚN a todas las máquinas (server, portátil, máquinas de un solo uso).
@@ -104,6 +104,9 @@ in
     enable = true;
     autosuggestions = {
       enable = true;
+      # Color explícito a propósito: el default de zsh-autosuggestions es `fg=8`,
+      # y en la paleta de kitty color8 = #002b36 (azul oscuro de Solarized), que
+      # sobre el fondo #1e1e1e es prácticamente invisible.
       highlightStyle = "fg=#b0b0b0,bold";
     };
     syntaxHighlighting.enable = true;
@@ -122,6 +125,10 @@ in
       pbpaste = "wl-paste";
       youtube = "yt-dlp -x --audio-format mp3 --audio-quality 0";
       flakenv = ''echo "use flake" > .envrc && direnv allow'';
+      ctop = "docker run --rm -ti --name=ctop --volume /var/run/docker.sock:/var/run/docker.sock:ro quay.io/vektorlab/ctop:latest";
+      # Enlaza (o re-enlaza, tras añadir ficheros) los dotfiles con stow
+      dots-apply = "cd ~/nix-os/dotfiles && for d in */; do stow -v -t ~ \"$d\"; done && cd -";
+      dots-restore = "cd ~/nix-os/dotfiles && for d in */; do stow -v -R -t ~ \"$d\"; done && cd -";
       # wifi-scan → rescan + list
       # wifi-connect RED password "PASSSS"
       # wifi-connect RED --ask
@@ -152,7 +159,11 @@ in
       setopt HIST_FIND_NO_DUPS
       setopt HIST_SAVE_NO_DUPS
 
-      nrs() { sudo nixos-rebuild switch --upgrade |& nom; }
+      # El repo se asume en ~/nix-os del usuario que ejecuta nrs.
+      # El atributo del flake es el hostname en minúsculas (Korriban → korriban).
+      # sudo -v primero: pide la contraseña ANTES del pipe, para que el
+      # prompt no se pierda entre el output de nom.
+      nrs() { sudo -v && sudo nixos-rebuild switch --flake ~/nix-os#$(hostname | tr 'A-Z' 'a-z') |& nom; }
       RPROMPT='%F{yellow}%*%f %B%F{${promptHostColor}}%m%f%b'
 
       extract() {
@@ -177,6 +188,9 @@ in
           return 1
         fi
       }
+
+      # Resumen del sistema al abrir una shell interactiva
+      nitch
     '';
 
     ohMyZsh = {
@@ -293,6 +307,11 @@ in
     "flakes"
   ];
 
+  # Sin channels, `nix-shell -p foo` y `nix shell nixpkgs#foo` usan el pin
+  # del flake.lock en vez de <nixpkgs> del canal (que ya no existe).
+  nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
+  nix.registry.nixpkgs.flake = inputs.nixpkgs;
+
   programs.nix-ld.enable = true;
 
   # Garbage collection automático
@@ -304,10 +323,13 @@ in
 
   nixpkgs.config.allowUnfree = true;
 
-  # Overlay para paquetes de unstable
+  # Overlay para paquetes de unstable, pineado en flake.lock (antes era un
+  # fetchTarball sin pin que se movía solo). `system` explícito: en eval pura
+  # no existe builtins.currentSystem.
   nixpkgs.overlays = [
     (final: prev: {
-      unstable = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") {
+      unstable = import inputs.nixpkgs-unstable {
+        inherit (final.stdenv.hostPlatform) system;
         config.allowUnfree = true;
       };
     })

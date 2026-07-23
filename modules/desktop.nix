@@ -6,6 +6,16 @@
 ##############################################################################
 {
   ##########################################################################
+  ## Directorios de usuario que los dotfiles dan por hechos
+  ## (hyprshot guarda capturas ahí; selector-wallpaper lee de ~/Images).
+  ## Mismo patrón que media.nix con ~/multimedia.
+  ##########################################################################
+  systemd.tmpfiles.rules = [
+    "d /home/wizord/Images             0755 wizord users -"
+    "d /home/wizord/Images/Screenshots 0755 wizord users -"
+  ];
+
+  ##########################################################################
   ## Boot (cosas gráficas de arranque)
   ##########################################################################
   # Evita un /dev/dri/card0 fantasma de simpledrm (arregla gpu-screen-recorder)
@@ -295,7 +305,7 @@
       installPhase = ''
         mkdir -p $out/share/sddm/themes/pixie
         cp -r . $out/share/sddm/themes/pixie
-        cp ${/home/wizord/Images/plant.jpg} $out/share/sddm/themes/pixie/assets/background.jpg
+        cp ${../assets/plant.jpg} $out/share/sddm/themes/pixie/assets/background.jpg
       '';
     })
 

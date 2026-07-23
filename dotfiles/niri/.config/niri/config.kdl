@@ -249,9 +249,8 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 spawn-at-startup "waybar" "-c" "/home/wizord/.config/waybar/themes/left/config.jsonc" "-s" "/home/wizord/.config/waybar/themes/left/style.css"
-spawn-at-startup "kitty"
 spawn-at-startup "swww-daemon"
-spawn-sh-at-startup "swww img \"$(cat ~/.cache/current_wallpaper 2>/dev/null || echo ~/Images/black_mountain.jpg)\""
+spawn-sh-at-startup "swww img \"$(cat ~/.cache/current_wallpaper 2>/dev/null || echo ~/nix-os/assets/fight-jedi-sith.jpg)\""
 spawn-at-startup "radiotray-ng"
 spawn-at-startup "swaync"
 spawn-at-startup "blueman-applet"
