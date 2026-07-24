@@ -129,6 +129,70 @@ done < /tmp/.chk_wlog
 [ "$hubo_wlog" -eq 1 ] && [ "$fallos" -eq 0 ] && ok "acciones de wlogout correctas"
 
 ##############################################################################
+titulo "1c. Binarios invocados desde waybar"
+##############################################################################
+# Este hueco se comió tres clics muertos: cpu/memory/disk seguían abriendo
+# `alacritty -e htop` mucho después de pasarnos a kitty. Los módulos de waybar
+# no los mira nadie más porque el propio waybar arranca igual: el clic
+# simplemente no hace nada.
+python3 - <<'PY' > /tmp/.chk_waybar 2>/dev/null
+import json, os, re
+
+# Claves de waybar cuyo valor es una orden de shell.
+clave = re.compile(r'^(on-click|on-click-middle|on-click-right|on-scroll-up|'
+                   r'on-scroll-down|exec|exec-if|on-update)$')
+
+def recorre(nodo, ruta, lineas):
+    if isinstance(nodo, dict):
+        for k, v in nodo.items():
+            if clave.match(k) and isinstance(v, str):
+                yield k, v
+            else:
+                yield from recorre(v, ruta, lineas)
+    elif isinstance(nodo, list):
+        for v in nodo:
+            yield from recorre(v, ruta, lineas)
+
+for raiz, _, ficheros in os.walk('dotfiles/waybar'):
+    for f in ficheros:
+        if not f.endswith(('.json', '.jsonc')):
+            continue
+        ruta = os.path.join(raiz, f)
+        txt = open(ruta, encoding='utf-8').read()
+        lineas = txt.splitlines()
+        # Se reaprovecha el limpiador de JSONC de la sección 5 en versión corta:
+        # basta con quitar los comentarios de línea para poder parsear.
+        limpio = re.sub(r'^\s*//.*$', '', txt, flags=re.M)
+        limpio = re.sub(r',(\s*[}\]])', r'\1', limpio)
+        try:
+            datos = json.loads(limpio)
+        except Exception:
+            continue   # la sintaxis ya la audita la sección 5
+        for k, cmd in recorre(datos, ruta, lineas):
+            # "activate" y similares son acciones internas de waybar, no binarios.
+            if cmd in ('activate', 'toggle', ''):
+                continue
+            tok = re.findall(r'[a-zA-Z0-9_./~$-]+', cmd)
+            if not tok:
+                continue
+            n = next((i for i, l in enumerate(lineas, 1)
+                      if cmd in l and not l.strip().startswith('//')), 0)
+            print(f'{ruta}\t{n}\t{k}\t{tok[0]}')
+PY
+
+hubo_wb=0
+fallos_wb=0
+while IFS=$'\t' read -r ruta linea clave exe; do
+  [ -n "${exe:-}" ] || continue
+  hubo_wb=1
+  if ! existe_bin "$exe"; then
+    mal "waybar $(basename "$ruta") L$linea ($clave): '$exe' no existe"
+    fallos_wb=$((fallos_wb+1))
+  fi
+done < /tmp/.chk_waybar
+[ "$hubo_wb" -eq 1 ] && [ "$fallos_wb" -eq 0 ] && ok "todos los binarios de waybar existen"
+
+##############################################################################
 titulo "2. Comandos de un compositor usados en el otro"
 ##############################################################################
 # hyprctl/hyprshot hablan por el socket de Hyprland: en niri no hacen nada.
@@ -160,6 +224,25 @@ if [ -n "$encontradas" ]; then
   done <<< "$encontradas"
 else
   ok "ninguna ruta del store escrita a mano"
+fi
+
+##############################################################################
+titulo "3b. Rutas atadas a un usuario concreto"
+##############################################################################
+# Los dotfiles se enlazan con stow al home de QUIEN los aplica, así que un
+# "/home/wizord/..." literal solo funciona para wizord: en un equipo nuevo o
+# para otro usuario del mismo equipo queda muerto. Va con ~ o con $HOME.
+# La sección 4 no lo pilla: comprueba si la ruta existe, y en la máquina de
+# wizord existe.
+atadas=$(grep -rn "/home/[a-z]" dotfiles/ 2>/dev/null \
+         | grep -v Binary \
+         | grep -vE ':[0-9]+:\s*(#|//|\*)')
+if [ -n "$atadas" ]; then
+  while IFS= read -r l; do
+    [ -n "$l" ] && mal "ruta atada a un usuario (usa ~ o \$HOME): ${l:0:100}"
+  done <<< "$atadas"
+else
+  ok "ningún dotfile escribe /home/<usuario> a mano"
 fi
 
 ##############################################################################
@@ -276,7 +359,6 @@ for s in dotfiles/bin/bin/*; do
   bash -n "$s" 2>/dev/null || mal "sintaxis bash: $s"
 done
 
-# Solo si Hyprland está corriendo ahora mismo.
 if command -v hyprctl >/dev/null 2>&1 && hyprctl version >/dev/null 2>&1; then
   errs=$(hyprctl configerrors 2>/dev/null | grep -c "Config error" || true)
   if [ "${errs:-0}" -eq 0 ]; then
@@ -287,9 +369,41 @@ if command -v hyprctl >/dev/null 2>&1 && hyprctl version >/dev/null 2>&1; then
 fi
 
 ##############################################################################
+titulo "6. Fuentes pedidas por los dotfiles"
+##############################################################################
+# Una familia que no está instalada no da error: fontconfig cae en otra y solo
+# se nota en que la barra "se ve raro". Así estuvo waybar pidiendo
+# "Ac437 PhoenixVGA 9x14" (que no está en ningún paquete declarado) mientras
+# dibujaba en DejaVu Sans.
+if command -v fc-match >/dev/null 2>&1; then
+  familias=$(grep -rhoE 'font-family\s*:\s*[^;]+' dotfiles/ 2>/dev/null \
+             | sed 's/^[^:]*:\s*//' | tr ',' '\n' \
+             | sed 's/^\s*"\?//; s/"\?\s*$//' | grep -vE '^(monospace|sans-serif|serif|)$' \
+             | sort -u)
+  if [ -z "$familias" ]; then
+    ok "ningún dotfile fija una familia de fuente"
+  else
+    fallos_font=0
+    while IFS= read -r fam; do
+      [ -n "$fam" ] || continue
+      real=$(fc-match --format='%{family}' "$fam" 2>/dev/null)
+      # fc-match SIEMPRE devuelve algo: hay que comparar con lo pedido.
+      if printf '%s' "$real" | grep -qiF "$fam"; then
+        ok "fuente disponible: $fam"
+      else
+        mal "fuente NO instalada: '$fam' (fontconfig usaría '$real')"
+        fallos_font=$((fallos_font+1))
+      fi
+    done <<< "$familias"
+  fi
+fi
+
+# Solo si Hyprland está corriendo ahora mismo.
+
+##############################################################################
 titulo "Resumen"
 ##############################################################################
-rm -f /tmp/.chk_niri /tmp/.chk_hypr /tmp/.chk_wlog /tmp/.chk_rutas /tmp/.chk_json
+rm -f /tmp/.chk_niri /tmp/.chk_hypr /tmp/.chk_wlog /tmp/.chk_waybar /tmp/.chk_rutas /tmp/.chk_json
 if [ "$fallos" -eq 0 ]; then
   printf '  %s%d fallos%s, %d avisos\n' "$verde" "$fallos" "$fin" "$avisos"
   exit 0
