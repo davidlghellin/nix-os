@@ -248,9 +248,12 @@ layout {
 // See the binds section below for more spawn examples.
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
-spawn-at-startup "waybar" "-c" "/home/wizord/.config/waybar/themes/left/config.jsonc" "-s" "/home/wizord/.config/waybar/themes/left/style.css"
+// Vía "sh -c" para que ~ se expanda: niri lanza con execvp, no pasa por shell,
+// así que un "~/..." literal como argumento no valdría. Antes iba con la ruta
+// /home/wizord absoluta y solo funcionaba para ese usuario.
+spawn-sh-at-startup "waybar -c ~/.config/waybar/themes/left/config.jsonc -s ~/.config/waybar/themes/left/style.css"
 spawn-at-startup "awww-daemon"
-spawn-sh-at-startup "awww img \"$(cat ~/.cache/current_wallpaper 2>/dev/null || echo ~/nix-os/assets/drosera.jpg)\""
+spawn-sh-at-startup "awww img \"$(cat ~/.cache/current_wallpaper 2>/dev/null || echo /etc/wallpapers/drosera.jpg)\""
 spawn-at-startup "radiotray-ng"
 spawn-at-startup "swaync"
 spawn-at-startup "blueman-applet"

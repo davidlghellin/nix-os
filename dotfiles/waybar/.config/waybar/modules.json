@@ -50,7 +50,9 @@
     "custom/exit": {
         "format": "",
         "tooltip-format": "Powermenu",
-        "on-click": "/home/wizord/bin/wlogout-custom",
+        // $HOME y no /home/wizord: los dotfiles se enlazan con stow al home de
+        // quien los aplique. waybar pasa el on-click por sh, así que expande.
+        "on-click": "$HOME/bin/wlogout-custom",
         "tooltip": false
     },
 

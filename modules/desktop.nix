@@ -8,6 +8,11 @@ let
   # Mismo cursor en el login y en la sesión (hyprland.conf pide este tema).
   cursorTheme = "Bibata-Modern-Ice";
   cursorSize = 24;
+
+  # El admin, declarado en common.nix. Aquí solo se le añaden los grupos de
+  # escritorio y sus directorios. Para otra gente en la misma máquina:
+  # lib/mkUser.nix, que no toca nada de esto.
+  usuario = "wizord";
 in
 {
   ##########################################################################
@@ -16,9 +21,23 @@ in
   ## Mismo patrón que media.nix con ~/multimedia.
   ##########################################################################
   systemd.tmpfiles.rules = [
-    "d /home/wizord/Images             0755 wizord users -"
-    "d /home/wizord/Images/Screenshots 0755 wizord users -"
+    "d /home/${usuario}/Images             0755 ${usuario} users -"
+    "d /home/${usuario}/Images/Screenshots 0755 ${usuario} users -"
   ];
+
+  ##########################################################################
+  ## Fondos de pantalla en /etc/wallpapers
+  ## hyprlock no pasa por shell, así que no puede expandir ~ y tenía la ruta
+  ## /home/wizord escrita a mano (muerta para cualquier otro usuario). Desde
+  ## una ruta del sistema valen para todos los usuarios del equipo, y también
+  ## para quien no tenga el repo clonado en su home.
+  ## Se leen del directorio: al añadir un jpg a assets/ aparece solo.
+  ##########################################################################
+  environment.etc = lib.mapAttrs'
+    (nombre: _: lib.nameValuePair "wallpapers/${nombre}" {
+      source = ../assets + "/${nombre}";
+    })
+    (lib.filterAttrs (_: tipo: tipo == "regular") (builtins.readDir ../assets));
 
   ##########################################################################
   ## Boot (cosas gráficas de arranque)
@@ -201,7 +220,7 @@ in
   ##########################################################################
   ## Users (grupos extra de escritorio; se suman a los de common.nix)
   ##########################################################################
-  users.users.wizord.extraGroups = [
+  users.users.${usuario}.extraGroups = [
     "input"
     "video"
     "seat"
@@ -234,9 +253,9 @@ in
   ## Rust (auto-fix rustup si está roto)
   ##########################################################################
   system.activationScripts.rustup-check = ''
-    if ! /run/wrappers/bin/su wizord -c "${pkgs.rustup}/bin/rustup show active-toolchain" &>/dev/null; then
+    if ! /run/wrappers/bin/su ${usuario} -c "${pkgs.rustup}/bin/rustup show active-toolchain" &>/dev/null; then
       echo "Rustup sin default configurado, configurando nightly..."
-      /run/wrappers/bin/su wizord -c "${pkgs.rustup}/bin/rustup default nightly" || true
+      /run/wrappers/bin/su ${usuario} -c "${pkgs.rustup}/bin/rustup default nightly" || true
     fi
   '';
 

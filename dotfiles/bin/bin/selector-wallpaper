@@ -1,19 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Busca en DOS sitios:
-#   - assets/ del repo → versionado, sobrevive a una reinstalación
+# Busca en TRES sitios:
+#   - /etc/wallpapers  → los de assets/ que instala modules/desktop.nix; los ve
+#                        cualquier usuario del equipo aunque no tenga el repo
+#   - assets/ del repo → mismo contenido, pero si estás trabajando en él
 #   - ~/Images         → los que dejas a mano, fuera de git
 # Antes solo miraba ~/Images, que en una instalación nueva está vacío
 # (systemd.tmpfiles crea el directorio, no su contenido) y el selector
 # no ofrecía nada.
-WALL_DIRS=( "$HOME/nix-os/assets" "$HOME/Images" )
+WALL_DIRS=( /etc/wallpapers "$HOME/nix-os/assets" "$HOME/Images" )
 
 shopt -s nullglob
 declare -a rutas=()
+declare -A vistos=()
 for d in "${WALL_DIRS[@]}"; do
   [ -d "$d" ] || continue
   for f in "$d"/*.jpg "$d"/*.png "$d"/*.jpeg "$d"/*.webp; do
+    # Sin esto, /etc/wallpapers y assets/ del repo (mismo contenido) saldrían
+    # duplicados en el menú. Gana el primer directorio de la lista.
+    nombre="$(basename "$f")"
+    [ -n "${vistos[$nombre]:-}" ] && continue
+    vistos[$nombre]=1
     rutas+=( "$f" )
   done
 done
