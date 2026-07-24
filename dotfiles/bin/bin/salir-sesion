@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Cierra la sesión pidiéndoselo al compositor que esté corriendo.
+#
+# Importa el CÓMO: `loginctl terminate-session` manda SIGTERM a todo el árbol
+# de golpe y SDDM se queda descolocado — intenta rearrancar la sesión, el
+# sddm-helper revienta ("Process crashed") y te deja una pantalla negra.
+# Pidiéndole al compositor que salga de forma ordenada, SDDM detecta el fin
+# de sesión y presenta el greeter como debe.
+set -uo pipefail
+
+# Hyprland: hyprctl solo responde si hay una instancia viva.
+if command -v hyprctl >/dev/null 2>&1 && hyprctl version >/dev/null 2>&1; then
+  exec hyprctl dispatch exit
+fi
+
+# Niri: idem con niri msg.
+if command -v niri >/dev/null 2>&1 && niri msg version >/dev/null 2>&1; then
+  exec niri msg action quit --skip-confirmation
+fi
+
+# Último recurso (compositor desconocido o ya caído).
+echo "No detecto Hyprland ni niri; cierro la sesión vía logind." >&2
+exec loginctl terminate-session "${XDG_SESSION_ID:-}"
