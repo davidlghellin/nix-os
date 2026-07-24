@@ -15,7 +15,9 @@ Nada de escritorio en el server; nada de server en el portátil.
 ```
 .
 ├── flake.nix / flake.lock     # Raíz: inputs pineados y nixosConfigurations
-├── lib/mkHost.nix             # Helper que arma cada host (evita duplicación)
+├── lib/
+│   ├── mkHost.nix             # Helper que arma cada host (evita duplicación)
+│   └── mkUser.nix             # Usuario "normal" sin sudo (equipo para otra persona)
 ├── hosts/
 │   ├── hades/                 #   portátil → common + desktop + media + gpu-nvidia
 │   │   ├── default.nix
@@ -23,7 +25,7 @@ Nada de escritorio en el server; nada de server en el portátil.
 │   ├── korriban/              #   server headless → common + server + media + gpu-amd + sail
 │   │   ├── default.nix
 │   │   └── hardware.nix
-│   └── default.nix            #   plantilla mínima para una máquina nueva
+│   └── default.nix            #   PLANTILLA para una máquina nueva (nadie la importa)
 ├── modules/                   # Bloques reutilizables, sin dependencias implícitas
 │   ├── common.nix             #   base para TODAS: red, SSH, zsh, git, nix, CLI
 │   ├── desktop.nix            #   Wayland (Hyprland/Niri, SDDM, audio, GUI)
@@ -32,7 +34,8 @@ Nada de escritorio en el server; nada de server en el portátil.
 │   ├── sail.nix               #   LakeSail (Spark Connect + Arrow Flight SQL)
 │   ├── gpu-amd.nix            #   drivers AMD (VAAPI, transcoding)
 │   └── gpu-nvidia.nix         #   drivers NVIDIA + PRIME
-├── assets/                    # Imágenes versionadas (wallpapers, avatar de SDDM)
+├── assets/                    # Imágenes versionadas (wallpapers, avatar de SDDM).
+│                              #   desktop.nix las instala en /etc/wallpapers
 ├── scripts/
 │   └── check-dotfiles.sh      # Detecta enlaces muertos en los dotfiles
 ├── docs/migracion-flakes.md   # Plan y decisiones de la migración a flakes
@@ -53,12 +56,31 @@ Solo contiene UUIDs de particiones y módulos de kernel.
 
 ## 🚀 Instalación
 
+### 0. Instalar NixOS de la forma normal
+
+Este repo no se autoinstala: necesita un sistema ya arrancado y `git` para
+clonarlo. Así que primero, instalación normal desde el ISO.
+
+**Qué usuario crear en el instalador: `wizord`.** No es un capricho — es el que
+declara `modules/common.nix`, y con `users.mutableUsers = true` (el valor por
+defecto, aquí no se cambia) la contraseña que le pongas en la instalación es la
+que se queda. Si creases solo el usuario de otra persona, tras el primer switch
+`wizord` existiría **sin contraseña** (no podrías entrar) y el otro usuario no
+tendría `wheel`, o sea que tampoco podría lanzar el rebuild. Los usuarios extra
+se añaden después, declarativamente (ver `lib/mkUser.nix` más abajo).
+
+Elige la versión del ISO a conciencia: es la que va en `stateVersion`.
+
 ### 1. Clonar
 
 ```bash
-git clone git@github.com:davidlghellin/nix-os.git ~/nix-os
+nix-shell -p git      # si el sistema recién instalado no trae git
+git clone https://github.com/davidlghellin/nix-os.git ~/nix-os
 cd ~/nix-os
 ```
+
+Por HTTPS y no por SSH: en una máquina nueva todavía no hay clave subida a
+GitHub. El remoto se cambia a SSH luego, cuando la haya.
 
 ### 2. Añadir el hardware de la máquina
 
@@ -75,6 +97,11 @@ nix store diff-closures /run/current-system ./result   # revisar qué cambia
 sudo nixos-rebuild switch --flake .#<host>
 ```
 
+No hace falta activar flakes a mano antes del primer switch: aunque
+`nix.settings.experimental-features` de este repo no está aplicado todavía,
+`nixos-rebuild` se los pasa a `nix` por su cuenta cuando ve `--flake`
+(`FLAKE_FLAGS` en nixos-rebuild-ng).
+
 ### 4. Dotfiles con Stow
 
 ```bash
@@ -87,8 +114,101 @@ Existen los alias `dots-apply` y `dots-restore` para esto.
 > No hace falta copiar ningún `.zshrc`: la configuración de Zsh es declarativa
 > y vive en `modules/common.nix` (`programs.zsh`).
 
-**Máquina nueva:** crea `hosts/<nombre>/` con su `default.nix` (lista de módulos)
-y su `hardware.nix`, y añade una línea en `flake.nix`. Nada más.
+### 5. Comprobar que no quedó nada roto
+
+```bash
+./scripts/check-dotfiles.sh
+```
+
+Verifica lo que no da error por sí solo: binarios que los dotfiles invocan y no
+existen, rutas del store escritas a mano, rutas atadas a un `/home/<usuario>`
+concreto, familias de fuente no instaladas (fontconfig cae en otra en silencio)
+y la sintaxis de cada config. Sale 0 si todo está bien.
+
+**Máquina nueva:** copia la plantilla `hosts/default.nix` a
+`hosts/<nombre>/default.nix`, descomenta los módulos que use, pon su
+`hostName` y su `stateVersion`, añade el `hardware.nix` y una línea en
+`flake.nix`. Los pasos están en la cabecera de la propia plantilla.
+
+**Usuario nuevo:** `wizord` lo declara `modules/common.nix`, que lo importan
+todos los hosts, así que es admin (`wheel` → sudo) en cualquier máquina sin
+tocar nada. Para añadir a otra persona encima —un equipo que montas para
+alguien, pero al que quieres poder entrar a arreglar cosas— hay
+`lib/mkUser.nix`:
+
+```nix
+imports = [
+  ../../modules/common.nix
+  ../../modules/desktop.nix
+  (import ../../lib/mkUser.nix {
+    nombre = "david";
+    descripcion = "David";
+    paquetes = p: [ p.firefox p.vlc ];   # solo para él, no para el sistema
+  })
+];
+```
+
+La contraseña no va en el repo: nace bloqueado hasta que hagas `sudo passwd
+david` tras el primer switch. Si va a usar el escritorio, los dotfiles se le
+aplican entrando como él y lanzando `dots-apply`.
+
+**Dos tipos de usuario**, según si además administra la máquina:
+
+| | grupos que recibe |
+|---|---|
+| por defecto (`admin = false`) | `networkmanager` + los de la sesión gráfica |
+| `admin = true` | los de arriba **+ `wheel` (sudo) + `storage` + `plugdev`** |
+
+Y hay `escritorio = false` (para una máquina sin pantalla) y `red = false` (no
+le deja tocar la wifi). Con todo en `false` se queda sin ningún grupo extra.
+
+### Dónde poner los paquetes
+
+**`environment.systemPackages` no es "de wizord": es del sistema.** Es un
+malentendido fácil, porque el fichero donde está es el mismo donde se declara
+`wizord` — pero `wizord.packages` está literalmente vacío (`[]`). Los ~300
+paquetes van a `/run/current-system/sw/bin`, que lo ve **cualquier usuario** de
+la máquina, incluido el nuevo y root.
+
+| Quieres que… | Va en |
+|---|---|
+| lo tenga todo el mundo (**el caso normal**) | `environment.systemPackages` de `modules/common.nix` (CLI) o `modules/desktop.nix` (GUI) |
+| lo tenga solo un usuario | `paquetes` de `mkUser.nix` → `users.users.<n>.packages`, su perfil |
+
+O sea que **no**: para que algo esté para todos no hay que tocar nada de
+wizord. Al añadir en cualquiera de los dos sitios, `nrs`.
+
+Y **no se repite nada en ningún caso**. Ni siquiera cuando un conjunto es para
+varios usuarios pero no para todo el sistema: se define una vez en un `let` y
+se reutiliza. Ejemplo de portátil con tres usuarios separados:
+
+```nix
+{ ... }:
+let
+  ofimatica = p: [ p.libreoffice-fresh p.firefox ];   # definido UNA vez
+in
+{
+  imports = [
+    ./hardware.nix
+    ../../modules/common.nix       # los ~300 paquetes: los ven los tres
+    ../../modules/desktop.nix
+
+    (import ../../lib/mkUser.nix { nombre = "ana";  paquetes = ofimatica; })
+    (import ../../lib/mkUser.nix { nombre = "luis"; paquetes = p: ofimatica p ++ [ p.gimp ]; })
+    (import ../../lib/mkUser.nix { nombre = "nano"; admin = true; })
+  ];
+}
+```
+
+> **No hay coste en disco por elegir mal.** Aunque tres usuarios tengan el
+> mismo paquete en su perfil, es la *misma* ruta del store: el perfil solo
+> añade symlinks. Sistema vs perfil de usuario es una decisión de **quién lo
+> ve**, no de cuánto ocupa.
+
+Ojo con lo que significa "separados": lo que separa a los usuarios son sus
+homes, sus sesiones y sus perfiles de navegador. Que compartan los programas no
+va en contra de eso — al revés, es lo que hace que se actualicen en un solo
+sitio.
 
 ## 🔧 Uso diario
 

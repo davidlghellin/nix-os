@@ -35,7 +35,7 @@
   ];
 
   # Driver de aceleración de vídeo específico de NVIDIA
-  # (la base de hardware.graphics está en configuration.nix)
+  # (la base de hardware.graphics la ponen este mismo módulo arriba y desktop.nix)
   hardware.graphics.extraPackages = with pkgs; [
     nvidia-vaapi-driver
   ];

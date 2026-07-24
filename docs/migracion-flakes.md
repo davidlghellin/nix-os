@@ -5,6 +5,27 @@
 > Revisado contra el código real del repo (jul 2026): se corrigen inputs
 > sobrantes y se añaden los blockers de pureza que el plan original no veía.
 
+## ⚠️ ESTADO: hecho (24 jul 2026)
+
+Esto queda como **registro de decisiones**, no como trabajo pendiente. Lo de
+abajo está escrito en futuro pero ya se ejecutó, y algunos números de línea y
+versiones ya no cuadran con el código.
+
+- **Fases 1–7: hechas.** `hades` y `korriban` corren con flakes. `nix-channel`
+  vacío en las dos.
+- **La versión NO es 25.11.** Se aprovechó para subir a **26.05** (25.11 quedó
+  EOL: última actividad de la rama el 30 jun 2026). Donde el plan dice 25.11,
+  lee 26.05.
+- **Inputs finales: dos**, `nixpkgs` (26.05) y `nixpkgs-unstable`. El
+  `nixos-hardware` que menciona el plan **no está**: entra cuando entre la rasp,
+  que es la única que lo consume.
+- **Fase 8 (rpi3): sigue diferida.** `rpi3/` con su flake aparte en 25.11. Los
+  tres avisos de esa fase siguen vigentes tal cual.
+- **Fase 9 (cosmético): no hecha**, y sin planes. `modules/` sigue plano.
+- **Extras que no estaban en el plan:** `lib/mkUser.nix` (usuarios sin sudo),
+  `hosts/default.nix` como plantilla de máquina nueva, `scripts/check-dotfiles.sh`
+  y `stateVersion` con `mkDefault` para que cada host ponga la suya.
+
 ## Decisiones tomadas
 
 - **home-manager: diferido.** Se deja un slot `modules/home/` para adoptarlo luego
