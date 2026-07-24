@@ -210,6 +210,32 @@ homes, sus sesiones y sus perfiles de navegador. Que compartan los programas no
 va en contra de eso — al revés, es lo que hace que se actualicen en un solo
 sitio.
 
+### Si un usuario quiere instalarse algo él mismo
+
+No necesita sudo ni tocar el repo. Cada usuario tiene su propio perfil:
+
+```bash
+nix profile install nixpkgs#vlc    # se lo instala a él, sin sudo
+nix profile list                   # ver lo que lleva instalado
+nix profile remove vlc             # quitarlo
+nix shell nixpkgs#vlc              # solo para usarlo un rato, no instala nada
+```
+
+**`nixpkgs#` no se le va a desincronizar del sistema**, y no es casualidad:
+`nix.registry.nixpkgs.flake` (en `common.nix`) apunta el registry al mismo
+nixpkgs pineado del `flake.lock`, así que instala la misma versión que corre la
+máquina. Sin eso, `nixpkgs#` iría a `nixpkgs-unstable` del canal público.
+
+Dos límites que conviene saber:
+
+- **Es imperativo.** No queda en el repo, así que no sobrevive a una
+  reinstalación ni aparece en otra máquina. Si es algo que quiere para siempre,
+  mejor pedírtelo y que entre en `paquetes` o en `systemPackages`.
+- **Los paquetes unfree le fallarán.** `nixpkgs.config.allowUnfree` es de la
+  config del sistema y no se aplica a un `nix profile install` de usuario.
+  Tendría que ser `NIXPKGS_ALLOW_UNFREE=1 nix profile install --impure
+  nixpkgs#loquesea`, y para unfree es más limpio que lo declares tú.
+
 ## 🔧 Uso diario
 
 ```bash
