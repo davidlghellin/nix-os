@@ -1,7 +1,10 @@
 * {
   border: none;
   border-radius: 0;
-  font-family: "Ac437 PhoenixVGA 9x14";
+  /* Antes pedía "Ac437 PhoenixVGA 9x14", que no está instalada: fontconfig
+   * caía en DejaVu Sans y en la Nerd Font para los glifos de iconos. Es
+   * exactamente esto, pero escrito, para que no dependa del fallback. */
+  font-family: "DejaVu Sans", "JetBrainsMono Nerd Font";
   font-size: 13px;
   font-weight: 100;
   min-width: 10px;
