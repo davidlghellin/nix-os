@@ -91,6 +91,44 @@ done < <(sort -u -k2 /tmp/.chk_hypr)
 [ "$fallos" -eq 0 ] && ok "todos los binarios de niri e hyprland existen"
 
 ##############################################################################
+titulo "1b. Acciones del menú de apagado (wlogout)"
+##############################################################################
+# Por aquí se colaron DOS fallos: "Salir" con `hyprctl dispatch exit` no hacía
+# nada en niri, y al cambiarlo a `loginctl terminate-session` dejaba pantalla
+# negra en Hyprland. Se comprueban los binarios y se avisa de los comandos
+# atados a un compositor concreto.
+python3 - <<'PY' > /tmp/.chk_wlog 2>/dev/null
+import re
+try:
+    txt = open('dotfiles/wlogout/.config/wlogout/layout').read()
+except OSError:
+    raise SystemExit
+etiqueta = None
+for n, linea in enumerate(txt.splitlines(), 1):
+    m = re.search(r'"label"\s*:\s*"([^"]+)"', linea)
+    if m:
+        etiqueta = m.group(1)
+    m = re.search(r'"action"\s*:\s*"([^"]+)"', linea)
+    if m:
+        cmd = m.group(1)
+        tok = re.findall(r'[a-zA-Z0-9_./~$-]+', cmd)
+        if tok:
+            print(f'{n}\t{etiqueta or "?"}\t{tok[0]}\t{cmd}')
+PY
+
+hubo_wlog=0
+while IFS=$'\t' read -r linea etiqueta exe cmd; do
+  [ -n "${exe:-}" ] || continue
+  hubo_wlog=1
+  if ! existe_bin "$exe"; then
+    mal "wlogout L$linea ($etiqueta): '$exe' no existe"
+  elif printf '%s' "$cmd" | grep -qE "^(hyprctl|niri) "; then
+    aviso "wlogout L$linea ($etiqueta): '$cmd' solo sirve en un compositor"
+  fi
+done < /tmp/.chk_wlog
+[ "$hubo_wlog" -eq 1 ] && [ "$fallos" -eq 0 ] && ok "acciones de wlogout correctas"
+
+##############################################################################
 titulo "2. Comandos de un compositor usados en el otro"
 ##############################################################################
 # hyprctl/hyprshot hablan por el socket de Hyprland: en niri no hacen nada.
@@ -251,7 +289,7 @@ fi
 ##############################################################################
 titulo "Resumen"
 ##############################################################################
-rm -f /tmp/.chk_niri /tmp/.chk_hypr /tmp/.chk_rutas /tmp/.chk_json
+rm -f /tmp/.chk_niri /tmp/.chk_hypr /tmp/.chk_wlog /tmp/.chk_rutas /tmp/.chk_json
 if [ "$fallos" -eq 0 ]; then
   printf '  %s%d fallos%s, %d avisos\n' "$verde" "$fallos" "$fin" "$avisos"
   exit 0
