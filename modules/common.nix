@@ -414,5 +414,8 @@ in
   ##########################################################################
   ## State version
   ##########################################################################
-  system.stateVersion = "25.05";
+  # 25.05 es cuando se instalaron hades y korriban; no se cambia al subir de
+  # versión. mkDefault para que una máquina nueva pueda poner en su host la
+  # versión con la que se instaló, que es lo correcto.
+  system.stateVersion = lib.mkDefault "25.05";
 }
