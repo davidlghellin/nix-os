@@ -99,21 +99,93 @@ nrs-notify    # igual, pero avisa al terminar (notificación + sonido)
 
 Ambos resuelven el host desde el hostname en minúsculas (`Korriban` → `korriban`).
 
-### Actualizar paquetes
+## 🔄 Actualizar
+
+Tres niveles, de menor a mayor impacto. En todos, el `flake.lock` queda como
+un diff revisable y reversible.
+
+### 1. Paquetes del release actual (lo habitual)
 
 ```bash
-nix flake update              # todos los inputs
-nix flake update nixpkgs      # solo uno
+nix flake update nixpkgs      # avanza dentro de la rama nixos-26.05
 nrs
 ```
 
-El `flake.lock` queda como diff revisable: se revierte con `git revert`.
+Trae parches de seguridad y correcciones sin cambiar de release. Bajo riesgo.
 
-### Subir de release
+### 2. Solo los paquetes de unstable
 
-Cambiar la rama en el input de `flake.nix` (p. ej. `nixos-26.05` → `nixos-26.11`),
-`nix flake update nixpkgs`, y **construir antes de activar**. `system.stateVersion`
-NO se toca nunca: indica con qué versión se instaló la máquina, no la que usa.
+```bash
+nix flake update nixpkgs-unstable
+nrs
+```
+
+Afecta a lo que se consume vía `pkgs.unstable.*`: `claude-code`, `brave`,
+`firefox`, `proton-vpn` y **`sail`** (que en korriban corre como servicio).
+Es el input que más se mueve.
+
+### 3. Todos los inputs
+
+```bash
+nix flake update
+nrs
+```
+
+### Subir de release (cada ~6 meses)
+
+Editar la rama del input en `flake.nix`:
+
+```nix
+nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.11";   # antes: nixos-26.05
+```
+
+y después `nix flake update nixpkgs`.
+
+> **`system.stateVersion` NO se toca nunca.** No es "la versión que uso", sino
+> con qué versión se instaló la máquina: le dice a NixOS qué migraciones de
+> datos aplicar. Cambiarlo puede romper servicios con estado en silencio.
+
+Conviene comprobar antes si el release actual sigue vivo (cada uno se mantiene
+hasta ~1 mes después del siguiente):
+
+```bash
+nix flake metadata github:NixOS/nixpkgs/nixos-26.05 --json \
+  | jq -r '.lastModified | strftime("%Y-%m-%d")'
+```
+
+Si la última commit es de hace semanas, la rama está congelada = EOL. Así se
+detectó que 25.11 llevaba muerta desde el 30 de junio de 2026.
+
+### Flujo seguro
+
+Recomendado siempre, **obligatorio** al subir de release:
+
+```bash
+nixos-rebuild build --flake .#hades                    # construye, no activa
+nix store diff-closures /run/current-system ./result   # qué cambia exactamente
+nrs                                                     # si convence
+```
+
+Para korriban, validando desde hades sin tocar el server:
+
+```bash
+nixos-rebuild build --flake .#korriban
+nix copy --to ssh://root@korriban $(readlink -f result)   # por LAN, más rápido
+```
+
+### Revertir
+
+```bash
+git checkout flake.lock          # antes de aplicar: deshace la actualización
+sudo nixos-rebuild --rollback    # ya aplicado: generación anterior
+git revert <commit>              # deja la reversión en el historial
+```
+
+Y siempre queda elegir una generación anterior en el menú de arranque.
+
+**Ritmo recomendado:** nivel 1 cada pocas semanas; nivel 3 antes de ponerse con
+algo gordo, no en medio. El salto de release, **nunca el mismo día que otros
+cambios**: si algo se rompe, quieres que la única variable sea el release.
 
 ### Verificar los dotfiles
 
