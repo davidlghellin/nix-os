@@ -208,6 +208,42 @@ else
   ok "niri no depende de hyprctl/hyprshot"
 fi
 
+# Ficheros que arrancan o usan LOS DOS compositores. Por aquí se colaron los
+# `hyprctl dispatch dpms` de hypridle.conf: hypridle lo lanzan los dos, pero
+# hyprctl solo habla con Hyprland, así que bajo niri la pantalla no se apagaba
+# nunca y nada daba error. Si un fichero compartido nombra hyprctl/hyprshot y NO
+# nombra niri por ningún lado, es que solo sabe de un compositor.
+compartidos="dotfiles/hypr/.config/hypr/hypridle.conf
+dotfiles/wlogout/.config/wlogout/layout"
+for f in dotfiles/bin/bin/*; do compartidos="$compartidos
+$f"; done
+
+sesgados=""
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  # Ojo: `grep -n` sobre UN fichero no prefija el nombre, así que las líneas
+  # salen como "17:texto" y el filtro de comentarios va con ^, sin los dos
+  # puntos delante. Con ':[0-9]+:' no filtraba nada y daba falsos positivos.
+  usa=$(grep -nE '(^|[^a-zA-Z-])(hyprctl|hyprshot)' "$f" 2>/dev/null \
+        | grep -vE '^\s*[0-9]+:\s*(#|//)')
+  [ -n "$usa" ] || continue
+  # Si también sabe de niri, es un script que detecta el compositor: correcto.
+  # Solo cuenta en líneas ACTIVAS: si se mirase todo el fichero, un comentario
+  # que mencione niri (como el de hypridle.conf explicando justamente esto)
+  # desactivaría la comprobación y quedaría vacua.
+  grep -E '\bniri\b' "$f" 2>/dev/null | grep -qvE '^\s*(#|//)' && continue
+  sesgados="$sesgados$f: $(printf '%s' "$usa" | head -1 | cut -c1-60)
+"
+done <<< "$compartidos"
+
+if [ -n "${sesgados//[$'\n']/}" ]; then
+  while IFS= read -r l; do
+    [ -n "$l" ] && mal "fichero compartido que solo sabe de Hyprland: $l"
+  done <<< "$sesgados"
+else
+  ok "los ficheros compartidos por ambos compositores no asumen Hyprland"
+fi
+
 ##############################################################################
 titulo "3. Rutas del store escritas a mano"
 ##############################################################################

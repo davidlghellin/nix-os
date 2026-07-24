@@ -215,11 +215,15 @@ sitio.
 No necesita sudo ni tocar el repo. Cada usuario tiene su propio perfil:
 
 ```bash
-nix profile install nixpkgs#vlc    # se lo instala a él, sin sudo
-nix profile list                   # ver lo que lleva instalado
-nix profile remove vlc             # quitarlo
-nix shell nixpkgs#vlc              # solo para usarlo un rato, no instala nada
+nix profile add nixpkgs#vlc     # se lo instala a él, sin sudo
+nix profile list                # ver lo que lleva instalado
+nix profile remove vlc          # quitarlo
+nix profile upgrade --all       # actualizar lo suyo
+nix shell nixpkgs#vlc           # solo para usarlo un rato, no instala nada
 ```
+
+> `add`, no `install`: en Nix 2.34 `install` sigue funcionando pero avisa de que
+> es un alias deprecado.
 
 **`nixpkgs#` no se le va a desincronizar del sistema**, y no es casualidad:
 `nix.registry.nixpkgs.flake` (en `common.nix`) apunta el registry al mismo
@@ -394,11 +398,11 @@ niri msg reload-config  # Niri
 |---|---|
 | `Super + Return` | Terminal (kitty) |
 | `Super + Space` | Rofi — launcher (en Niri: `Super + D`) |
-| `Super + E` | Gestor de ficheros (thunar) |
+| `Super + E` | Gestor de ficheros (thunar) — **solo Hyprland** |
 | `Super + C` | Cerrar ventana |
 | `Super + F` | Fullscreen |
 | `Super + L` | Bloquear pantalla |
-| `Super + M` | Salir de la sesión |
+| `Super + M` (Hyprland) · `Super+Shift+E` (Niri) | Salir de la sesión |
 | `Super + F1` | Ayuda de atajos |
 | `Super + P` / `Super + J` | Pseudotile / togglesplit (dwindle) |
 | `F12` | Terminal desplegable (**solo Hyprland**: usa special workspaces) |
