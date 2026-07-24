@@ -257,6 +257,15 @@ in
   '';
 
   ##########################################################################
+  ## Ratón en la consola de texto
+  ##
+  ## Permite seleccionar con el ratón y pegar con el botón central en un TTY,
+  ## sin depender de tmux. Junto con tmux, hace usable el TTY cuando el
+  ## escritorio no arranca — que es justo cuando hace falta.
+  ##########################################################################
+  services.gpm.enable = true;
+
+  ##########################################################################
   ## direnv (auto-activa flake.nix / shell.nix al hacer cd)
   ##########################################################################
   programs.direnv = {
@@ -324,6 +333,12 @@ in
 
     ## System
     nix-output-monitor
+
+    # Rescate: si el escritorio se cae acabas en un TTY pelado, sin paneles ni
+    # copiar-pegar. Y una sesión dentro de tmux SOBREVIVE a que muera el
+    # compositor (o a un corte de SSH en korriban): se recupera con `tmux
+    # attach` en vez de perderla.
+    tmux
 
     ## Desde unstable para tener siempre la última versión
     unstable.claude-code
