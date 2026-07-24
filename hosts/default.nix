@@ -1,10 +1,11 @@
 { ... }:
 
 ##############################################################################
-## Host por defecto (fallback).
-## Se usa cuando /etc/hostname no coincide con ningún hosts/<nombre>.nix.
-## Base mínima que arranca en cualquier hardware: red, SSH, shell y CLI.
-## Ideal para una máquina de un solo uso: clonas, rebuild y listo.
+## Plantilla para una máquina nueva. Base mínima: red, SSH, shell y CLI.
+##
+## NO es un fallback: con flakes cada host es un output explícito y no hay
+## dispatcher que elija por hostname. Para usarla, copia esto a
+## hosts/<nombre>/default.nix, añade su hardware.nix y una línea en flake.nix.
 ##############################################################################
 {
   imports = [
