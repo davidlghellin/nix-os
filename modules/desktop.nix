@@ -4,7 +4,41 @@
 ## ESCRITORIO (Wayland: Hyprland + Niri, audio, batería, GUI apps).
 ## Se importa solo en máquinas con pantalla (p.ej. el portátil hades).
 ##############################################################################
+let
+  # Mismo cursor en el login y en la sesión (hyprland.conf pide este tema).
+  cursorTheme = "Bibata-Modern-Ice";
+  cursorSize = 24;
+
+  # El admin, declarado en common.nix. Aquí solo se le añaden los grupos de
+  # escritorio y sus directorios. Para otra gente en la misma máquina:
+  # lib/mkUser.nix, que no toca nada de esto.
+  usuario = "wizord";
+in
 {
+  ##########################################################################
+  ## Directorios de usuario que los dotfiles dan por hechos
+  ## (hyprshot guarda capturas ahí; selector-wallpaper lee de ~/Images).
+  ## Mismo patrón que media.nix con ~/multimedia.
+  ##########################################################################
+  systemd.tmpfiles.rules = [
+    "d /home/${usuario}/Images             0755 ${usuario} users -"
+    "d /home/${usuario}/Images/Screenshots 0755 ${usuario} users -"
+  ];
+
+  ##########################################################################
+  ## Fondos de pantalla en /etc/wallpapers
+  ## hyprlock no pasa por shell, así que no puede expandir ~ y tenía la ruta
+  ## /home/wizord escrita a mano (muerta para cualquier otro usuario). Desde
+  ## una ruta del sistema valen para todos los usuarios del equipo, y también
+  ## para quien no tenga el repo clonado en su home.
+  ## Se leen del directorio: al añadir un jpg a assets/ aparece solo.
+  ##########################################################################
+  environment.etc = lib.mapAttrs'
+    (nombre: _: lib.nameValuePair "wallpapers/${nombre}" {
+      source = ../assets + "/${nombre}";
+    })
+    (lib.filterAttrs (_: tipo: tipo == "regular") (builtins.readDir ../assets));
+
   ##########################################################################
   ## Boot (cosas gráficas de arranque)
   ##########################################################################
@@ -93,6 +127,21 @@
     enable = true;
     wayland.enable = true;
     theme = "pixie";
+
+    # Sin CursorTheme el greeter se queda sin cursor visible, y el selector de
+    # sesión del tema pixie es un MouseArea (no recibe foco de teclado), así que
+    # sin ratón no hay forma de cambiar de sesión.
+    settings.Theme = {
+      CursorTheme = cursorTheme;
+      CursorSize = toString cursorSize;
+    };
+
+    # kwin en lugar del weston por defecto: con weston el greeter no pintaba
+    # cursor (ni con [shell] cursor-theme ni con XCURSOR_*), y el tema pixie
+    # tiene el selector de sesión como MouseArea, así que sin cursor no se
+    # puede elegir sesión ni usuario.
+    wayland.compositor = "kwin";
+
     extraPackages = with pkgs; [
       kdePackages.qt5compat
       kdePackages.qtdeclarative
@@ -100,10 +149,25 @@
     ];
   };
 
+  # El greeter es una app Qt y carga el cursor vía XCURSOR_*; el servicio no
+  # hereda esas variables de la sesión de usuario, hay que dárselas aquí.
+  systemd.services.display-manager.environment = {
+    XCURSOR_THEME = cursorTheme;
+    XCURSOR_SIZE = toString cursorSize;
+    XCURSOR_PATH = "/run/current-system/sw/share/icons";
+  };
+
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
   };
+
+  # Sesión fijada a propósito. Desde Hyprland 0.55 (NixOS 26.05) el paquete trae
+  # DOS ficheros de sesión: hyprland.desktop y hyprland-uwsm.desktop. El segundo
+  # ordena antes alfabéticamente ('-' < '.') y SDDM lo elegía, pero sin
+  # `programs.uwsm.enable` sus unidades systemd de usuario no existen
+  # (wayland-session-bindpid@.service) → la sesión muere y no hay escritorio.
+  services.displayManager.defaultSession = "hyprland";
 
   programs.niri.enable = true;
 
@@ -156,7 +220,7 @@
   ##########################################################################
   ## Users (grupos extra de escritorio; se suman a los de common.nix)
   ##########################################################################
-  users.users.wizord.extraGroups = [
+  users.users.${usuario}.extraGroups = [
     "input"
     "video"
     "seat"
@@ -189,9 +253,9 @@
   ## Rust (auto-fix rustup si está roto)
   ##########################################################################
   system.activationScripts.rustup-check = ''
-    if ! /run/wrappers/bin/su wizord -c "${pkgs.rustup}/bin/rustup show active-toolchain" &>/dev/null; then
+    if ! /run/wrappers/bin/su ${usuario} -c "${pkgs.rustup}/bin/rustup show active-toolchain" &>/dev/null; then
       echo "Rustup sin default configurado, configurando nightly..."
-      /run/wrappers/bin/su wizord -c "${pkgs.rustup}/bin/rustup default nightly" || true
+      /run/wrappers/bin/su ${usuario} -c "${pkgs.rustup}/bin/rustup default nightly" || true
     fi
   '';
 
@@ -212,10 +276,8 @@
     hyprlock
     hypridle
     hyprpanel
-    swww
-    eww
+    awww
     nwg-look
-    pywal
     brightnessctl
     playerctl
     xdg-desktop-portal-hyprland
@@ -270,14 +332,15 @@
     qalculate-gtk  # Calculadora para scratchpad
     libreoffice-qt6-fresh
     calibre
-    xfce.thunar
-    xfce.thunar-volman
+    thunar
+    thunar-volman
     udiskie
     radiotray-ng
 
     ## Temas (Catppuccin Mocha)
     catppuccin-gtk
     catppuccin-cursors.mochaBlue
+    bibata-cursors               # Bibata-Modern-Ice, el que pide hyprland.conf
     tela-icon-theme
     colloid-icon-theme
     numix-icon-theme
@@ -295,7 +358,12 @@
       installPhase = ''
         mkdir -p $out/share/sddm/themes/pixie
         cp -r . $out/share/sddm/themes/pixie
-        cp ${/home/wizord/Images/plant.jpg} $out/share/sddm/themes/pixie/assets/background.jpg
+        cp ${../assets/plant.jpg} $out/share/sddm/themes/pixie/assets/background.jpg
+
+        # Avatar del usuario. Se sustituye el del tema en vez de usar
+        # FacesDir/wizord.face.icon porque pixie exige que la ruta acabe en
+        # extensión de imagen (/\.(jpg|png|...)$/) y ".face.icon" no la pasa.
+        cp ${../assets/drosera.jpg} $out/share/sddm/themes/pixie/assets/avatar.jpg
       '';
     })
 

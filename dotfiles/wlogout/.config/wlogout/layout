@@ -24,7 +24,7 @@
 }
 {
     "label" : "logout",
-    "action" : "hyprctl dispatch exit",
+    "action" : "salir-sesion",
     "text" : "Salir",
     "keybind" : "e"
 }

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 ##############################################################################
 ## COMÚN a todas las máquinas (server, portátil, máquinas de un solo uso).
@@ -104,6 +104,9 @@ in
     enable = true;
     autosuggestions = {
       enable = true;
+      # Color explícito a propósito: el default de zsh-autosuggestions es `fg=8`,
+      # y en la paleta de kitty color8 = #002b36 (azul oscuro de Solarized), que
+      # sobre el fondo #1e1e1e es prácticamente invisible.
       highlightStyle = "fg=#b0b0b0,bold";
     };
     syntaxHighlighting.enable = true;
@@ -122,6 +125,10 @@ in
       pbpaste = "wl-paste";
       youtube = "yt-dlp -x --audio-format mp3 --audio-quality 0";
       flakenv = ''echo "use flake" > .envrc && direnv allow'';
+      ctop = "docker run --rm -ti --name=ctop --volume /var/run/docker.sock:/var/run/docker.sock:ro quay.io/vektorlab/ctop:latest";
+      # Enlaza (o re-enlaza, tras añadir ficheros) los dotfiles con stow
+      dots-apply = "cd ~/nix-os/dotfiles && for d in */; do stow -v -t ~ \"$d\"; done && cd -";
+      dots-restore = "cd ~/nix-os/dotfiles && for d in */; do stow -v -R -t ~ \"$d\"; done && cd -";
       # wifi-scan → rescan + list
       # wifi-connect RED password "PASSSS"
       # wifi-connect RED --ask
@@ -152,7 +159,41 @@ in
       setopt HIST_FIND_NO_DUPS
       setopt HIST_SAVE_NO_DUPS
 
-      nrs() { sudo nixos-rebuild switch --upgrade |& nom; }
+      # El repo se asume en ~/nix-os del usuario que ejecuta nrs.
+      # El atributo del flake es el hostname en minúsculas (Korriban → korriban).
+      # sudo -v primero: pide la contraseña ANTES del pipe, para que el
+      # prompt no se pierda entre el output de nom.
+      nrs() { sudo -v && sudo nixos-rebuild switch --flake ~/nix-os#$(hostname | tr 'A-Z' 'a-z') |& nom; }
+
+      # Igual que nrs, pero avisa al terminar con notificación + sonido.
+      # Útil para rebuilds largos (cambio de release, kernel, NVIDIA...).
+      nrs-notify() {
+        sudo -v || return 1
+        sudo nixos-rebuild switch --flake ~/nix-os#$(hostname | tr 'A-Z' 'a-z') |& nom
+
+        # $pipestatus[1] y no $? : con `|& nom` el estado de salida de la
+        # función sería el de nom, que siempre es 0 aunque el rebuild falle.
+        local estado=$pipestatus[1]
+        local sonidos=${pkgs.sound-theme-freedesktop}/share/sounds/freedesktop/stereo
+        local urgencia icono sonido cuerpo
+
+        if (( estado == 0 )); then
+          urgencia=normal;   icono=software-update-available; sonido=complete.oga
+          cuerpo="Rebuild completado"
+        else
+          urgencia=critical; icono=dialog-error;              sonido=dialog-error.oga
+          cuerpo="Rebuild FALLÓ (código $estado)"
+        fi
+
+        # Solo en máquinas con escritorio: korriban es headless y no tiene
+        # libnotify ni pipewire (viven en desktop.nix).
+        if [[ -n "$WAYLAND_DISPLAY$DISPLAY" ]] && command -v notify-send >/dev/null; then
+          notify-send -u $urgencia -i $icono "NixOS · $(hostname)" "$cuerpo"
+          command -v paplay >/dev/null && (paplay $sonidos/$sonido &>/dev/null &)
+        fi
+
+        return $estado
+      }
       RPROMPT='%F{yellow}%*%f %B%F{${promptHostColor}}%m%f%b'
 
       extract() {
@@ -177,6 +218,9 @@ in
           return 1
         fi
       }
+
+      # Resumen del sistema al abrir una shell interactiva
+      nitch
     '';
 
     ohMyZsh = {
@@ -211,6 +255,15 @@ in
     export PATH="$HOME/bin:$PATH"
     export DIRENV_CONFIG="/etc/direnv"
   '';
+
+  ##########################################################################
+  ## Ratón en la consola de texto
+  ##
+  ## Permite seleccionar con el ratón y pegar con el botón central en un TTY,
+  ## sin depender de tmux. Junto con tmux, hace usable el TTY cuando el
+  ## escritorio no arranca — que es justo cuando hace falta.
+  ##########################################################################
+  services.gpm.enable = true;
 
   ##########################################################################
   ## direnv (auto-activa flake.nix / shell.nix al hacer cd)
@@ -281,6 +334,12 @@ in
     ## System
     nix-output-monitor
 
+    # Rescate: si el escritorio se cae acabas en un TTY pelado, sin paneles ni
+    # copiar-pegar. Y una sesión dentro de tmux SOBREVIVE a que muera el
+    # compositor (o a un corte de SSH en korriban): se recupera con `tmux
+    # attach` en vez de perderla.
+    tmux
+
     ## Desde unstable para tener siempre la última versión
     unstable.claude-code
   ];
@@ -293,9 +352,45 @@ in
     "flakes"
   ];
 
+  # Sin channels, `nix-shell -p foo` y `nix shell nixpkgs#foo` usan el pin
+  # del flake.lock en vez de <nixpkgs> del canal (que ya no existe).
+  nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
+  nix.registry.nixpkgs.flake = inputs.nixpkgs;
+
   programs.nix-ld.enable = true;
 
   # Garbage collection automático
+  # Deduplicación del store: sustituye ficheros idénticos por hardlinks.
+  # Vía temporizador systemd y no `auto-optimise-store`, que lo hace durante
+  # cada build y las ralentiza. Solo toca /nix/store; jamás /home.
+  nix.optimise = {
+    automatic = true;
+    dates = [ "weekly" ];
+  };
+
+  # Y además incremental: deduplica cada ruta nueva al crearla, sin escanear
+  # el resto del store. Añade algo de latencia a cada build, pero así lo nuevo
+  # nunca espera al repaso semanal. Las dos se complementan.
+  nix.settings.auto-optimise-store = true;
+
+  # GC por presión de disco: si bajan de 5 GiB libres, el daemon libera
+  # hasta llegar a 20 GiB en vez de esperar al GC semanal.
+  nix.settings.min-free = 5 * 1024 * 1024 * 1024;
+  nix.settings.max-free = 20 * 1024 * 1024 * 1024;
+
+  ##########################################################################
+  ## Coredumps acotados
+  ##
+  ## Un crash de waybar durante el switch a 26.05 escribió 23 GB y consumió
+  ## 5,7 GB de RAM antes de que systemd lo matara por timeout. Con estos
+  ## topes un proceso grande deja de poder llenar el disco.
+  ##########################################################################
+  systemd.coredump.settings.Coredump = {
+    ProcessSizeMax = "2G";
+    ExternalSizeMax = "2G";
+    MaxUse = "4G";
+  };
+
   nix.gc = {
     automatic = true;
     dates = "weekly";
@@ -304,10 +399,13 @@ in
 
   nixpkgs.config.allowUnfree = true;
 
-  # Overlay para paquetes de unstable
+  # Overlay para paquetes de unstable, pineado en flake.lock (antes era un
+  # fetchTarball sin pin que se movía solo). `system` explícito: en eval pura
+  # no existe builtins.currentSystem.
   nixpkgs.overlays = [
     (final: prev: {
-      unstable = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") {
+      unstable = import inputs.nixpkgs-unstable {
+        inherit (final.stdenv.hostPlatform) system;
         config.allowUnfree = true;
       };
     })
@@ -316,5 +414,8 @@ in
   ##########################################################################
   ## State version
   ##########################################################################
-  system.stateVersion = "25.05";
+  # 25.05 es cuando se instalaron hades y korriban; no se cambia al subir de
+  # versión. mkDefault para que una máquina nueva pueda poner en su host la
+  # versión con la que se instaló, que es lo correcto.
+  system.stateVersion = lib.mkDefault "25.05";
 }

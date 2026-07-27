@@ -8,6 +8,13 @@
 ## Nota: MiniDLNA indexa "/media/disk_dlg" (disco externo del server). En una
 ## máquina sin ese disco simplemente lo ignora con un warning; no falla.
 ##############################################################################
+let
+  # Dueño de los servicios y de la biblioteca. Es el admin de common.nix: los
+  # torrents y la biblioteca de Jellyfin viven en su home, así que si algún día
+  # se monta esto en un equipo de otra persona, se cambia aquí y ya.
+  usuario = "wizord";
+  biblioteca = "/home/${usuario}/multimedia";
+in
 {
   ##########################################################################
   ## Minidlna
@@ -16,7 +23,7 @@
     enable = true;
     settings = {
       media_dir = [
-        "V,/home/wizord/multimedia/Torrents"
+        "V,${biblioteca}/Torrents"
         "/media/disk_dlg"
       ];
       friendly_name = config.networking.hostName;
@@ -36,7 +43,7 @@
   ##########################################################################
   services.jellyfin = {
     enable = true;
-    user = "wizord";
+    user = usuario;
     openFirewall = true;  # Abre puertos 8096 (HTTP) y 8920 (HTTPS)
   };
 
@@ -44,8 +51,8 @@
   ## Transmission
   ##########################################################################
   systemd.tmpfiles.rules = [
-    "d /home/wizord/multimedia              0755 wizord users -"
-    "d /home/wizord/multimedia/Torrents     0755 wizord users -"
+    "d ${biblioteca}              0755 ${usuario} users -"
+    "d ${biblioteca}/Torrents     0755 ${usuario} users -"
   ];
 
   # El servicio falla en boot con "Failed to set up mount namespacing"
@@ -58,11 +65,11 @@
   services.transmission = {
     enable = true;
     package = pkgs.transmission_4;
-    user = "wizord";
+    user = usuario;
     openFirewall = true;
 
     settings = {
-      download-dir = "/home/wizord/multimedia/Torrents";
+      download-dir = "${biblioteca}/Torrents";
       incomplete-dir-enabled = false;
       rpc-enabled = true;
       rpc-bind-address = "0.0.0.0";

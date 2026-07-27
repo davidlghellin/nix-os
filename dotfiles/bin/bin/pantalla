@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Apaga o enciende las pantallas pidiéndoselo al compositor que esté corriendo.
+#
+# Hace falta porque hypridle lo arrancan LOS DOS compositores (exec-once en
+# hyprland.conf, spawn-at-startup en config.kdl) pero comparten un solo
+# hypridle.conf, que apagaba la pantalla con `hyprctl dispatch dpms`. Eso solo
+# habla por el socket de Hyprland: bajo niri no hacía nada y la pantalla se
+# quedaba encendida para siempre.
+#
+# Mismo patrón que `salir-sesion`.
+set -uo pipefail
+
+case "${1:-}" in
+  on | off) accion="$1" ;;
+  *)
+    echo "uso: $(basename "$0") on|off" >&2
+    exit 2
+    ;;
+esac
+
+# Hyprland: hyprctl solo responde si hay una instancia viva.
+if command -v hyprctl >/dev/null 2>&1 && hyprctl version >/dev/null 2>&1; then
+  exec hyprctl dispatch dpms "$accion"
+fi
+
+# Niri: acciones propias, no acepta "dpms off" como argumento.
+if command -v niri >/dev/null 2>&1 && niri msg version >/dev/null 2>&1; then
+  case "$accion" in
+    off) exec niri msg action power-off-monitors ;;
+    on) exec niri msg action power-on-monitors ;;
+  esac
+fi
+
+echo "No detecto Hyprland ni niri; no sé apagar la pantalla." >&2
+exit 1

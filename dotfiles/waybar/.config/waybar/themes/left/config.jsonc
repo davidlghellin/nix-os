@@ -58,18 +58,21 @@
   },
 
 
+// Hora APILADA (hora arriba, minutos abajo) a propósito: en una barra vertical
+// el ancho lo fija el módulo más ancho, y "{:%H:%M}" en horizontal ensanchaba
+// la barra a 46px, espacio que Hyprland reserva y le quita a las ventanas.
+// El CSS del tema ya traía clases .hour/.minute pensadas para esto.
 "clock": {
   "interval": 1,
-  "format": "{:%H:%M}",
-  "format-alt": "{:%d%m}",
+  "format": "{:%H\n%M}",
+  "format-alt": "{:%d\n%m}",
   "tooltip-format": "{:%Y-%m-%d %H:%M}"
 },
 
 
   "backlight": {
     "format": "{icon}",
-    "format-icons": ["󰃞", "󰃝", "󰃟", "󰃠"],
-    "on-click-middle": "$HOME/.config/rofi/applets/bin/brightness.sh"
+    "format-icons": ["󰃞", "󰃝", "󰃟", "󰃠"]
   },
 
   "battery": {
@@ -77,8 +80,12 @@
     "format": "{icon}",
     "format-charging": "󱐥",
     "format-plugged": "󱐥",
-    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
-    "on-click-right": "$HOME/.config/rofi/applets/bin/battery.sh"
+    // Enchufado y al 100% el kernel reporta "Full" (no "Charging"), y sin
+    // format-full waybar caía en "format" y mostraba la batería llena en vez
+    // del enchufe. "Full" solo ocurre con el cargador puesto: al desenchufar
+    // pasa a "Discharging".
+    "format-full": "󱐥",
+    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
   },
 
   "pulseaudio": {
@@ -98,8 +105,7 @@
       "default": ["󰕿", "󰕾", "󰕾"]
     },
     "on-click": "pactl set-sink-mute 0 toggle",
-    "on-click-right": "pactl set-sink-mute 0 toggle",
-    "on-click-middle": "$HOME/.config/rofi/applets/bin/volume.sh"
+    "on-click-right": "pactl set-sink-mute 0 toggle"
   },
   "custom/notifications": {
     "format": "{}",

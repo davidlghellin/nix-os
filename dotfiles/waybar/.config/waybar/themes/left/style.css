@@ -1,7 +1,10 @@
 * {
   border: none;
   border-radius: 0;
-  font-family: "Ac437 PhoenixVGA 9x14";
+  /* Antes pedía "Ac437 PhoenixVGA 9x14", que no está instalada: fontconfig
+   * caía en DejaVu Sans y en la Nerd Font para los glifos de iconos. Es
+   * exactamente esto, pero escrito, para que no dependa del fallback. */
+  font-family: "DejaVu Sans", "JetBrainsMono Nerd Font";
   font-size: 13px;
   font-weight: 100;
   min-width: 10px;
@@ -68,9 +71,9 @@ window#waybar {
   background: linear-gradient(90deg, #1addb0 0%, #00ffb1 80%);
   color: #000A0E;
   margin: 0px;
-  padding: 8px 6px;
+  padding: 5px 2px;
   border-radius: 15px;
-  font-size: 20px;
+  font-size: 14px;
 }
 
 #pulseaudio {

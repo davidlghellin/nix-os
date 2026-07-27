@@ -25,27 +25,30 @@ button:hover, button:focus {
     background-color: #45475a;
 }
 
+/* Rutas relativas al propio style.css, que es como las resuelve GTK.
+ * Antes llevaban el home escrito a mano y los iconos no salían para
+ * ningún otro usuario. */
 #lock {
-    background-image: url("/home/wizord/.config/wlogout/icons/lock.png");
+    background-image: url("icons/lock.png");
 }
 #lock:hover { border-color: #89b4fa; }
 
 #logout {
-    background-image: url("/home/wizord/.config/wlogout/icons/logout.png");
+    background-image: url("icons/logout.png");
 }
 #logout:hover { border-color: #cba6f7; }
 
 #suspend {
-    background-image: url("/home/wizord/.config/wlogout/icons/suspend.png");
+    background-image: url("icons/suspend.png");
 }
 #suspend:hover { border-color: #f9e2af; }
 
 #reboot {
-    background-image: url("/home/wizord/.config/wlogout/icons/reboot.png");
+    background-image: url("icons/reboot.png");
 }
 #reboot:hover { border-color: #a6e3a1; }
 
 #shutdown {
-    background-image: url("/home/wizord/.config/wlogout/icons/shutdown.png");
+    background-image: url("icons/shutdown.png");
 }
 #shutdown:hover { border-color: #f38ba8; }

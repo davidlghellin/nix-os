@@ -13,6 +13,8 @@ edit = [
 ]
 
 [plugin]
+# `url` y no `name`: yazi lo renombró y con `name` la config entera se
+# descarta ("at least one of `url` or `mime` must be specified").
 prepend_previewers = [
-  { name = "*.md", run = "code" },
+  { url = "*.md", run = "code" },
 ]

@@ -1,0 +1,119 @@
+# Matugen template: yazi file manager theme from wallpaper
+
+[mode]
+normal_main = { fg = "#680009", bg = "#ffb3ad", bold = true }
+normal_alt  = { fg = "#ffb3ad", bg = "reset" }
+select_main = { fg = "#680009", bg = "#ffb3ad", bold = true }
+select_alt  = { fg = "#ffb3ad", bg = "reset" }
+unset_main  = { fg = "#003352", bg = "#94ccff", bold = true }
+unset_alt   = { fg = "#94ccff", bg = "reset" }
+
+[status]
+overall = { fg = "reset", bg = "reset" }
+sep_left  = { open = "", close = "" }
+sep_right = { open = "", close = "" }
+
+perm_type  = { fg = "#ffb3ad", bold = true }
+perm_read  = { fg = "#94ccff" }
+perm_write = { fg = "#ffb3ad" }
+perm_exec  = { fg = "#ffb4ab" }
+perm_sep   = { fg = "#ae8884" }
+
+progress_label  = { fg = "#fddbd7", bold = true }
+progress_normal = { fg = "#ffb3ad", bg = "reset" }
+progress_error  = { fg = "#ffb4ab", bg = "reset" }
+
+[mgr]
+cwd = { fg = "#ffb3ad", bold = true }
+
+find_keyword  = { fg = "#94ccff", bold = true, italic = true, underline = true }
+find_position = { fg = "#ffb3ad", bg = "reset", bold = true, italic = true }
+
+marker_copied   = { fg = "#ffb3ad", bg = "#ffb3ad" }
+marker_cut      = { fg = "#ffb4ab", bg = "#ffb4ab" }
+marker_marked   = { fg = "#ffb3ad", bg = "#ffb3ad" }
+marker_selected = { fg = "#94ccff", bg = "#94ccff" }
+
+count_copied   = { fg = "#680009", bg = "#ffb3ad" }
+count_cut      = { fg = "#690005", bg = "#ffb4ab" }
+count_selected = { fg = "#003352", bg = "#94ccff" }
+
+border_symbol = "│"
+border_style  = { fg = "#ae8884" }
+
+hovered = { bg = "#4a3432" }
+
+[indicator]
+parent  = { fg = "#ffb3ad", bold = true }
+current = { fg = "#ffb3ad", bold = true }
+preview = { fg = "#ae8884", bold = true }
+padding = { open = "", close = " " }
+
+[tabs]
+active   = { fg = "#680009", bg = "#ffb3ad" }
+inactive = { fg = "#fddbd7", bg = "#2d1b19" }
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }
+
+[input]
+border   = { fg = "#ffb3ad" }
+title    = { fg = "#ffb3ad" }
+value    = { fg = "#fddbd7" }
+selected = { reversed = true }
+
+[pick]
+border   = { fg = "#ffb3ad" }
+active   = { fg = "#680009", bg = "#ffb3ad" }
+inactive = { fg = "#fddbd7" }
+
+[confirm]
+border = { fg = "#ffb3ad" }
+title  = { fg = "#ffb3ad" }
+body   = { fg = "#fddbd7" }
+list   = { fg = "#fddbd7" }
+btn_yes = { fg = "#680009", bg = "#ffb3ad" }
+btn_no  = { fg = "#690005", bg = "#ffb4ab" }
+btn_labels = [ " Yes ", " No " ]
+
+[notify]
+title_info  = { fg = "#ffb3ad" }
+title_warn  = { fg = "#94ccff" }
+title_error = { fg = "#ffb4ab" }
+
+[help]
+on     = { fg = "#ffb3ad" }
+run    = { fg = "#ffb3ad" }
+desc   = { fg = "#fddbd7" }
+hovered = { reversed = true }
+footer  = { fg = "#ae8884" }
+
+[which]
+cols = 3
+mask = { bg = "#2d1b19" }
+cand = { fg = "#ffb3ad" }
+rest = { fg = "#ae8884" }
+desc = { fg = "#fddbd7" }
+separator = " → "
+separator_style = { fg = "#ae8884" }
+
+[tasks]
+border  = { fg = "#ffb3ad" }
+title   = { fg = "#ffb3ad" }
+hovered = { reversed = true }
+
+[filetype]
+rules = [
+    { mime = "image/*", fg = "#ffb3ad" },
+    { mime = "{audio,video}/*", fg = "#ffb3ad" },
+    { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#ffb4ab" },
+    { mime = "application/{pdf,doc,rtf}", fg = "#ffb3ad" },
+    { url = "*/", fg = "#ffb3ad", bold = true },
+    { url = "*", fg = "#94ccff" },
+]
+
+[icon]
+globs = []
+dirs  = []
+files = []
+exts  = []
+conds = []
