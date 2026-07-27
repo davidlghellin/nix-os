@@ -149,8 +149,20 @@ imports = [
 ```
 
 La contraseña no va en el repo: nace bloqueado hasta que hagas `sudo passwd
-david` tras el primer switch. Si va a usar el escritorio, los dotfiles se le
-aplican entrando como él y lanzando `dots-apply`.
+david` tras el primer switch.
+
+Si va a usar el **escritorio**, `mkUser` solo crea la cuenta — los dotfiles
+(waybar, fondo, atajos…) se enlazan con stow al home de cada usuario. Sin
+ellos, entra a un Hyprland pelado. Para darle el mismo entorno, entra como él
+(o `sudo -u david -i`) y clona el repo en **su** home:
+
+```bash
+git clone <url-de-este-repo> ~/nix-os
+dots-apply        # enlaza los dotfiles; cierra sesión y vuelve a entrar
+```
+
+Los dotfiles son portables (`$HOME`, `/etc/wallpapers`, sin rutas cableadas a
+`/home/wizord`), así que funcionan igual para cualquier usuario.
 
 **Dos tipos de usuario**, según si además administra la máquina:
 
