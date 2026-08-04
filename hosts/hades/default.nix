@@ -49,5 +49,8 @@
 
   # CLI `sail` baseline (cacheado).
   # Solo los comandos; los servicios always-on son cosa de korriban (sail.nix).
-  environment.systemPackages = [ pkgs.unstable.sail ];
+  environment.systemPackages = [ 
+    pkgs.unstable.sail
+    pkgs.gitoxide
+  ];
 }
