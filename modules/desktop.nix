@@ -387,10 +387,12 @@ in
 
     ## Productivity
     watson
+    keepassxc                     # gestor de contraseñas local (.kdbx)
 
     ## Desde unstable para tener siempre la última versión
     unstable.brave
     unstable.firefox
+    unstable.librewolf
     unstable.proton-vpn
     unstable.sail
   ];
