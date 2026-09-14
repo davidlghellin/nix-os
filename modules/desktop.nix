@@ -211,10 +211,13 @@ in
   ##
   ## Límite semanal (watsonLimites, arriba): si el proyecto en marcha tiene
   ## límite, el recordatorio añade "semana 12h/20h". Y watson-limite mira cada
-  ## 5 min (a cualquier hora) y avisa UNA vez por semana al pasarlo. Solo se
-  ## comprueba el proyecto en marcha: es el único cuyo total puede crecer.
+  ## 5 min (a cualquier hora): al pasar el límite salta un aviso VISIBLE la 1ª
+  ## vez de la semana; a partir de ahí se re-emite SILENCIOSO (timeout 1ms, sin
+  ## toast) con el mismo ID → SIGUE en el panel (Super+N) y, si lo borras,
+  ## REAPARECE sin volver a saltar. Recorre TODOS los proyectos de la lista.
   ## Probar a mano: systemctl --user start watson-limite
-  ##   (el aviso ya dado vive en ~/.local/state/watson-limite/<proyecto>-<semana>)
+  ##   (el ID vive en ~/.local/state/watson-limite/<proyecto>-<semana>.id;
+  ##    bórralo para que vuelva a saltar VISIBLE esta semana)
   ##########################################################################
   systemd.user.services.watson-recordatorio = {
     description = "Recordatorio horario de Watson";
@@ -252,19 +255,31 @@ in
     };
     script = ''
       ${watsonLimitesSh}
-      proyecto=$(${pkgs.watson}/bin/watson status -p)
-      limite=''${limites[$proyecto]:-}
-      [[ -n "$limite" ]] || exit 0
+      semana=$(date +%G-W%V)
 
-      segundos=$(${pkgs.watson}/bin/watson report -w -c -p "$proyecto" -j | ${pkgs.jq}/bin/jq '.time | floor')
-      [[ $segundos -ge $(( limite * 3600 )) ]] || exit 0
+      # Recorre TODOS los proyectos con límite (no solo el que está en marcha),
+      # así cada uno que se pase tiene su propio aviso independiente en el panel.
+      for proyecto in "''${!limites[@]}"; do
+        limite=''${limites[$proyecto]}
+        segundos=$(${pkgs.watson}/bin/watson report -w -c -p "$proyecto" -j | ${pkgs.jq}/bin/jq '.time | floor')
+        [[ $segundos -ge $(( limite * 3600 )) ]] || continue
 
-      # Una marca por proyecto y semana ISO: avisa una vez, no cada 5 min.
-      aviso="$STATE_DIRECTORY/$proyecto-$(date +%G-W%V)"
-      [[ ! -e "$aviso" ]] || exit 0
-      ${pkgs.libnotify}/bin/notify-send -u critical -a Watson "⏱ Límite semanal" \
-        "$proyecto: $(( segundos / 3600 ))h de ''${limite}h esta semana"
-      touch "$aviso"
+        # 1ª vez de la semana (no hay idfile): toast VISIBLE. Siguientes: se
+        # re-emite SILENCIOSO (-t 1 => sin toast) con el MISMO ID → sigue en el
+        # panel (Super+N) y REAPARECE si lo borras, pero sin volver a saltar.
+        idfile="$STATE_DIRECTORY/$proyecto-$semana.id"
+        horas=$(( segundos / 3600 )); mins=$(( (segundos % 3600) / 60 ))
+        cuerpo="$proyecto: ''${horas}h ''${mins}m de ''${limite}h esta semana"
+        if [ -f "$idfile" ]; then
+          rid=$(cat "$idfile")
+          nuevo=$(${pkgs.libnotify}/bin/notify-send -p -r "$rid" -t 1 -u low \
+            -a Watson "⏱ Límite semanal" "$cuerpo")
+        else
+          nuevo=$(${pkgs.libnotify}/bin/notify-send -p -u normal \
+            -a Watson "⏱ Límite semanal" "$cuerpo")
+        fi
+        echo "$nuevo" > "$idfile"
+      done
     '';
   };
   systemd.user.timers.watson-limite = {
