@@ -165,6 +165,19 @@ in
       # prompt no se pierda entre el output de nom.
       nrs() { sudo -v && sudo nixos-rebuild switch --flake ~/nix-os#$(hostname | tr 'A-Z' 'a-z') |& nom; }
 
+      # watson report/log/aggregate → imprimir la salida con bat (como
+      # cat="bat -pp"). El resto de subcomandos (start/stop/status, add, edit,
+      # remove…) pasan intactos al binario real.
+      watson() {
+        case "''${1:-}" in
+          report|log|aggregate)
+            # return $pipestatus[1]: devuelve el código de watson, no el de bat
+            # (que con la tubería sería siempre 0).
+            command watson "$@" | bat -pp; return $pipestatus[1] ;;
+          *) command watson "$@" ;;
+        esac
+      }
+
       # Igual que nrs, pero avisa al terminar con notificación + sonido.
       # Útil para rebuilds largos (cambio de release, kernel, NVIDIA...).
       nrs-notify() {

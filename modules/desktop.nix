@@ -13,6 +13,18 @@ let
   # escritorio y sus directorios. Para otra gente en la misma máquina:
   # lib/mkUser.nix, que no toca nada de esto.
   usuario = "wizord";
+
+  # Límite semanal (horas, semana de lunes a domingo) por proyecto de Watson.
+  # Lo usan watson-recordatorio y watson-limite, más abajo.
+  watsonLimites = {
+    sail = 20;
+  };
+
+  # Los límites como array asociativo de bash: [sail]=20 …
+  watsonLimitesSh = ''
+    declare -A limites=(${lib.concatStringsSep " "
+      (lib.mapAttrsToList (p: h: "[${lib.escapeShellArg p}]=${toString h}") watsonLimites)})
+  '';
 in
 {
   ##########################################################################
@@ -189,6 +201,100 @@ in
       RestartSec = 1;
       TimeoutStopSec = 10;
     };
+  };
+
+  ##########################################################################
+  ## Recordatorio de Watson (cada hora, notificación vía swaync)
+  ## Si hay algo en marcha dice qué y cuánto llevas; si no, avisa de que no
+  ## estás midiendo. De 7:00 a 00:00 (incluidas) para no dar la lata de madrugada.
+  ## Probar a mano: systemctl --user start watson-recordatorio
+  ##
+  ## Límite semanal (watsonLimites, arriba): si el proyecto en marcha tiene
+  ## límite, el recordatorio añade "semana 12h/20h". Y watson-limite mira cada
+  ## 5 min (a cualquier hora): al pasar el límite salta un aviso VISIBLE la 1ª
+  ## vez de la semana; a partir de ahí se re-emite SILENCIOSO (timeout 1ms, sin
+  ## toast) con el mismo ID → SIGUE en el panel (Super+N) y, si lo borras,
+  ## REAPARECE sin volver a saltar. Recorre TODOS los proyectos de la lista.
+  ## Probar a mano: systemctl --user start watson-limite
+  ##   (el ID vive en ~/.local/state/watson-limite/<proyecto>-<semana>.id;
+  ##    bórralo para que vuelva a saltar VISIBLE esta semana)
+  ##
+  ## A propósito para TODOS los usuarios (systemd.user, sin ConditionUser):
+  ## la cuenta de trabajo david también mide con su propio Watson.
+  ## Sin Wants=graphical-session.target: con Hyprland sin uwsm ese target no
+  ## se activa. Si swaync aún no está, el aviso se reintenta en la siguiente
+  ## pasada.
+  ##########################################################################
+  systemd.user.services.watson-recordatorio = {
+    description = "Recordatorio horario de Watson";
+    after = [ "graphical-session.target" ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      ${watsonLimitesSh}
+      if ${pkgs.watson}/bin/watson status -p | grep -q "No project started"; then
+        ${pkgs.libnotify}/bin/notify-send -a Watson "⏱ Watson" "No estás midiendo nada"
+      else
+        proyecto=$(${pkgs.watson}/bin/watson status -p)
+        tags=$(${pkgs.watson}/bin/watson status -t)
+        tiempo=$(${pkgs.watson}/bin/watson status -e)
+        semana=""
+        if [[ -n "''${limites[$proyecto]:-}" ]]; then
+          segundos=$(${pkgs.watson}/bin/watson report -w -c -p "$proyecto" -j | ${pkgs.jq}/bin/jq '.time | floor')
+          semana=" · semana $(( segundos / 3600 ))h/''${limites[$proyecto]}h"
+        fi
+        ${pkgs.libnotify}/bin/notify-send -a Watson "⏱ Watson" "$proyecto $tags — $tiempo$semana"
+      fi
+    '';
+  };
+  systemd.user.timers.watson-recordatorio = {
+    wantedBy = [ "timers.target" ];
+    # 07..23 no llega a medianoche: las 00:00 van aparte.
+    timerConfig.OnCalendar = [ "*-*-* 07..23:00:00" "*-*-* 00:00:00" ];
+  };
+
+  systemd.user.services.watson-limite = {
+    description = "Aviso de límite semanal de Watson";
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      StateDirectory = "watson-limite";   # ~/.local/state/watson-limite
+    };
+    script = ''
+      ${watsonLimitesSh}
+      semana=$(date +%G-W%V)
+
+      # Recorre TODOS los proyectos con límite (no solo el que está en marcha),
+      # así cada uno que se pase tiene su propio aviso independiente en el panel.
+      for proyecto in "''${!limites[@]}"; do
+        limite=''${limites[$proyecto]}
+        segundos=$(${pkgs.watson}/bin/watson report -w -c -p "$proyecto" -j | ${pkgs.jq}/bin/jq '.time | floor')
+        [[ $segundos -ge $(( limite * 3600 )) ]] || continue
+
+        # 1ª vez de la semana (no hay idfile): toast VISIBLE. Siguientes: se
+        # re-emite SILENCIOSO (-t 1 => sin toast) con el MISMO ID → sigue en el
+        # panel (Super+N) y REAPARECE si lo borras, pero sin volver a saltar.
+        idfile="$STATE_DIRECTORY/$proyecto-$semana.id"
+        horas=$(( segundos / 3600 )); mins=$(( (segundos % 3600) / 60 ))
+        cuerpo="$proyecto: ''${horas}h ''${mins}m de ''${limite}h esta semana"
+        #
+        # Si swaync no está (arranque, reinicio de swaync…) notify-send falla:
+        # se salta el proyecto SIN tocar el idfile y se reintenta en 5 min. Así
+        # nunca queda un ID vacío que impida el primer aviso visible.
+        if [ -s "$idfile" ]; then
+          rid=$(cat "$idfile")
+          nuevo=$(${pkgs.libnotify}/bin/notify-send -p -r "$rid" -t 1 -u low \
+            -a Watson "⏱ Límite semanal" "$cuerpo") || continue
+        else
+          nuevo=$(${pkgs.libnotify}/bin/notify-send -p -u normal \
+            -a Watson "⏱ Límite semanal" "$cuerpo") || continue
+        fi
+        if [[ -n "$nuevo" ]]; then echo "$nuevo" > "$idfile"; fi
+      done
+    '';
+  };
+  systemd.user.timers.watson-limite = {
+    wantedBy = [ "timers.target" ];
+    timerConfig.OnCalendar = "*:0/5";
   };
 
   ##########################################################################
