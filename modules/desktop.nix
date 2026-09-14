@@ -13,6 +13,18 @@ let
   # escritorio y sus directorios. Para otra gente en la misma máquina:
   # lib/mkUser.nix, que no toca nada de esto.
   usuario = "wizord";
+
+  # Límite semanal (horas, semana de lunes a domingo) por proyecto de Watson.
+  # Lo usan watson-recordatorio y watson-limite, más abajo.
+  watsonLimites = {
+    sail = 20;
+  };
+
+  # Los límites como array asociativo de bash: [sail]=20 …
+  watsonLimitesSh = ''
+    declare -A limites=(${lib.concatStringsSep " "
+      (lib.mapAttrsToList (p: h: "[${lib.escapeShellArg p}]=${toString h}") watsonLimites)})
+  '';
 in
 {
   ##########################################################################
@@ -189,6 +201,75 @@ in
       RestartSec = 1;
       TimeoutStopSec = 10;
     };
+  };
+
+  ##########################################################################
+  ## Recordatorio de Watson (cada hora, notificación vía swaync)
+  ## Si hay algo en marcha dice qué y cuánto llevas; si no, avisa de que no
+  ## estás midiendo. De 7:00 a 00:00 (incluidas) para no dar la lata de madrugada.
+  ## Probar a mano: systemctl --user start watson-recordatorio
+  ##
+  ## Límite semanal (watsonLimites, arriba): si el proyecto en marcha tiene
+  ## límite, el recordatorio añade "semana 12h/20h". Y watson-limite mira cada
+  ## 5 min (a cualquier hora) y avisa UNA vez por semana al pasarlo. Solo se
+  ## comprueba el proyecto en marcha: es el único cuyo total puede crecer.
+  ## Probar a mano: systemctl --user start watson-limite
+  ##   (el aviso ya dado vive en ~/.local/state/watson-limite/<proyecto>-<semana>)
+  ##########################################################################
+  systemd.user.services.watson-recordatorio = {
+    description = "Recordatorio horario de Watson";
+    after = [ "graphical-session.target" ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      ${watsonLimitesSh}
+      if ${pkgs.watson}/bin/watson status -p | grep -q "No project started"; then
+        ${pkgs.libnotify}/bin/notify-send -a Watson "⏱ Watson" "No estás midiendo nada"
+      else
+        proyecto=$(${pkgs.watson}/bin/watson status -p)
+        tags=$(${pkgs.watson}/bin/watson status -t)
+        tiempo=$(${pkgs.watson}/bin/watson status -e)
+        semana=""
+        if [[ -n "''${limites[$proyecto]:-}" ]]; then
+          segundos=$(${pkgs.watson}/bin/watson report -w -c -p "$proyecto" -j | ${pkgs.jq}/bin/jq '.time | floor')
+          semana=" · semana $(( segundos / 3600 ))h/''${limites[$proyecto]}h"
+        fi
+        ${pkgs.libnotify}/bin/notify-send -a Watson "⏱ Watson" "$proyecto $tags — $tiempo$semana"
+      fi
+    '';
+  };
+  systemd.user.timers.watson-recordatorio = {
+    wantedBy = [ "timers.target" ];
+    # 07..23 no llega a medianoche: las 00:00 van aparte.
+    timerConfig.OnCalendar = [ "*-*-* 07..23:00:00" "*-*-* 00:00:00" ];
+  };
+
+  systemd.user.services.watson-limite = {
+    description = "Aviso de límite semanal de Watson";
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      StateDirectory = "watson-limite";   # ~/.local/state/watson-limite
+    };
+    script = ''
+      ${watsonLimitesSh}
+      proyecto=$(${pkgs.watson}/bin/watson status -p)
+      limite=''${limites[$proyecto]:-}
+      [[ -n "$limite" ]] || exit 0
+
+      segundos=$(${pkgs.watson}/bin/watson report -w -c -p "$proyecto" -j | ${pkgs.jq}/bin/jq '.time | floor')
+      [[ $segundos -ge $(( limite * 3600 )) ]] || exit 0
+
+      # Una marca por proyecto y semana ISO: avisa una vez, no cada 5 min.
+      aviso="$STATE_DIRECTORY/$proyecto-$(date +%G-W%V)"
+      [[ ! -e "$aviso" ]] || exit 0
+      ${pkgs.libnotify}/bin/notify-send -u critical -a Watson "⏱ Límite semanal" \
+        "$proyecto: $(( segundos / 3600 ))h de ''${limite}h esta semana"
+      touch "$aviso"
+    '';
+  };
+  systemd.user.timers.watson-limite = {
+    wantedBy = [ "timers.target" ];
+    timerConfig.OnCalendar = "*:0/5";
   };
 
   ##########################################################################
