@@ -170,7 +170,8 @@ in
       # remove…) pasan intactos al binario real.
       watson() {
         case "''${1:-}" in
-          report|log|aggregate) command watson "$@" | bat -pp ;;
+          # $pipestatus[1]: el código de watson, no el de bat (siempre 0).
+          report|log|aggregate) command watson "$@" | bat -pp; return $pipestatus[1] ;;
           *) command watson "$@" ;;
         esac
       }

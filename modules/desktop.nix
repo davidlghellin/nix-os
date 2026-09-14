@@ -218,6 +218,12 @@ in
   ## Probar a mano: systemctl --user start watson-limite
   ##   (el ID vive en ~/.local/state/watson-limite/<proyecto>-<semana>.id;
   ##    bórralo para que vuelva a saltar VISIBLE esta semana)
+  ##
+  ## A propósito para TODOS los usuarios (systemd.user, sin ConditionUser):
+  ## la cuenta de trabajo david también mide con su propio Watson.
+  ## Sin Wants=graphical-session.target: con Hyprland sin uwsm ese target no
+  ## se activa. Si swaync aún no está, el aviso se reintenta en la siguiente
+  ## pasada.
   ##########################################################################
   systemd.user.services.watson-recordatorio = {
     description = "Recordatorio horario de Watson";
@@ -270,15 +276,19 @@ in
         idfile="$STATE_DIRECTORY/$proyecto-$semana.id"
         horas=$(( segundos / 3600 )); mins=$(( (segundos % 3600) / 60 ))
         cuerpo="$proyecto: ''${horas}h ''${mins}m de ''${limite}h esta semana"
-        if [ -f "$idfile" ]; then
+        #
+        # Si swaync no está (arranque, reinicio de swaync…) notify-send falla:
+        # se salta el proyecto SIN tocar el idfile y se reintenta en 5 min. Así
+        # nunca queda un ID vacío que impida el primer aviso visible.
+        if [ -s "$idfile" ]; then
           rid=$(cat "$idfile")
           nuevo=$(${pkgs.libnotify}/bin/notify-send -p -r "$rid" -t 1 -u low \
-            -a Watson "⏱ Límite semanal" "$cuerpo")
+            -a Watson "⏱ Límite semanal" "$cuerpo") || continue
         else
           nuevo=$(${pkgs.libnotify}/bin/notify-send -p -u normal \
-            -a Watson "⏱ Límite semanal" "$cuerpo")
+            -a Watson "⏱ Límite semanal" "$cuerpo") || continue
         fi
-        echo "$nuevo" > "$idfile"
+        if [[ -n "$nuevo" ]]; then echo "$nuevo" > "$idfile"; fi
       done
     '';
   };
