@@ -11,6 +11,7 @@ let
   promptHostColor =
     if config.networking.hostName == "Korriban" then "red"
     else if config.networking.hostName == "hades" then "green"
+    else if config.networking.hostName == "hoth" then "white"
     else "cyan";
 in
 {
@@ -99,6 +100,12 @@ in
   ## Shell (Zsh)
   ##########################################################################
   environment.shells = with pkgs; [ zsh ];
+
+  # Sin ~/.zshrc, zsh lanza el asistente zsh-newuser-install en cada terminal
+  # (usuarios de mkUser, el invitado con el home en tmpfs…). La config real
+  # vive en /etc/zshrc; basta con que exista el fichero, aunque esté vacío.
+  # Corre al iniciar sesión de cada usuario; si ya existe no lo toca.
+  system.userActivationScripts.zshrc = "[ -e ~/.zshrc ] || touch ~/.zshrc";
 
   programs.zsh = {
     enable = true;
