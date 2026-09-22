@@ -255,33 +255,61 @@
                 _revfile="$_bin.rev"
                 mkdir -p "$_cache/bin"
 
-                # Worktree de main aparte, para NO cambiar de rama en tu checkout.
-                if [ ! -e "$_wt/.git" ]; then
-                  echo "⛵ Creando worktree de $_remote/main en $_wt…"
-                  git -C "$PRJ_ROOT" fetch "$_remote" main
-                  git -C "$PRJ_ROOT" worktree add --force --detach "$_wt" "$_remote/main"
-                fi
+                # Todo lo que toca el worktree/binario compartidos va bajo flock:
+                # serializa las actualizaciones (dos terminales no se pisan) y evita
+                # que alguien ejecute el binario mientras se está reescribiendo.
+                (
+                  ${pkgs.util-linux}/bin/flock 9
 
-                # Pon el worktree en la última main (salvo que pidas no tocar red).
-                if [ -z "''${SAIL_MAIN_NO_FETCH:-}" ] && git -C "$_wt" fetch "$_remote" main 2>/dev/null; then
-                  git -C "$_wt" checkout -q --detach "$_remote/main"
-                else
-                  echo "⛵ Sin fetch (offline o SAIL_MAIN_NO_FETCH): uso el worktree tal cual."
-                fi
-                _rev="$(git -C "$_wt" rev-parse HEAD)"
+                  # El worktree cacheado se creó desde un checkout concreto: valida que
+                  # sea del mismo remoto y, si no, recréalo (no servir otro repo).
+                  if [ -e "$_wt/.git" ]; then
+                    _want="$(git -C "$PRJ_ROOT" remote get-url "$_remote" 2>/dev/null || true)"
+                    _have="$(git -C "$_wt" remote get-url "$_remote" 2>/dev/null || true)"
+                    if [ -n "$_want" ] && [ "$_want" != "$_have" ]; then
+                      echo "⛵ Worktree cacheado no es de $_remote ($_have) → lo recreo."
+                      git -C "$PRJ_ROOT" worktree remove --force "$_wt" 2>/dev/null || rm -rf "$_wt"
+                    fi
+                  fi
 
-                # (Re)compila SOLO si falta el binario o main cambió. El binario
-                # vive fuera de target/ → cargo clean en tu rama no lo borra.
-                if [ ! -x "$_bin" ] || [ "$_rev" != "$(cat "$_revfile" 2>/dev/null || true)" ]; then
-                  echo "⛵ Compilando sail-cli (release) desde main $_rev…"
-                  ( cd "$_wt" && cargo build --release -p sail-cli )
-                  cp -f "$_wt/target/release/sail" "$_bin"
-                  echo "$_rev" > "$_revfile"
-                  echo "⛵ Binario de referencia listo: $_bin"
-                else
-                  echo "⛵ Binario de main al día ($_rev). Sin recompilar."
-                fi
+                  # Crear worktree si falta. SAIL_MAIN_NO_FETCH exige uno YA existente
+                  # (sin red no hay forma de traer main la 1ª vez → error claro).
+                  if [ ! -e "$_wt/.git" ]; then
+                    if [ -n "''${SAIL_MAIN_NO_FETCH:-}" ]; then
+                      echo "⛵ SAIL_MAIN_NO_FETCH=1 necesita un worktree ya existente en $_wt." >&2
+                      exit 1
+                    fi
+                    echo "⛵ Creando worktree de $_remote/main en $_wt…"
+                    git -C "$PRJ_ROOT" fetch "$_remote" main
+                    git -C "$PRJ_ROOT" worktree add --force --detach "$_wt" "$_remote/main"
+                  fi
 
+                  # Pon el worktree en la última main (salvo que pidas no tocar red).
+                  if [ -z "''${SAIL_MAIN_NO_FETCH:-}" ] && git -C "$_wt" fetch "$_remote" main 2>/dev/null; then
+                    git -C "$_wt" checkout -q --detach "$_remote/main"
+                  else
+                    echo "⛵ Sin fetch (offline o SAIL_MAIN_NO_FETCH): uso el worktree tal cual."
+                  fi
+                  _rev="$(git -C "$_wt" rev-parse HEAD)"
+
+                  # (Re)compila SOLO si falta el binario o main cambió. El binario vive
+                  # fuera de target/ → cargo clean en tu rama no lo borra. Publicación
+                  # ATÓMICA: build → cp a tmp → mv (rename) → rev, para que nadie vea
+                  # un binario a medias.
+                  if [ ! -x "$_bin" ] || [ "$_rev" != "$(cat "$_revfile" 2>/dev/null || true)" ]; then
+                    echo "⛵ Compilando sail-cli (release) desde main $_rev…"
+                    ( cd "$_wt" && cargo build --release -p sail-cli )
+                    cp -f "$_wt/target/release/sail" "$_bin.tmp.$$"
+                    mv -f "$_bin.tmp.$$" "$_bin"
+                    echo "$_rev" > "$_revfile"
+                    echo "⛵ Binario de referencia listo: $_bin"
+                  else
+                    echo "⛵ Binario de main al día ($_rev). Sin recompilar."
+                  fi
+                ) 9>"$_cache/update.lock"
+
+                # Lock liberado ya (no bloquear a otros mientras el server corre).
+                _rev="$(cat "$_revfile" 2>/dev/null || true)"
                 ${sailNotify} "⚙️ referencia main lista" "commit $_rev — sirviendo :50051"
                 echo "⛵ Server de REFERENCIA (main) en sc://localhost:50051 — Ctrl-C para parar."
                 exec env RUST_LOG="''${RUST_LOG:-sail=info}" \
