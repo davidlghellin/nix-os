@@ -132,7 +132,6 @@ in
       pbpaste = "wl-paste";
       youtube = "yt-dlp -x --audio-format mp3 --audio-quality 0";
       flakenv = ''echo "use flake" > .envrc && direnv allow'';
-      ctop = "docker run --rm -ti --name=ctop --volume /var/run/docker.sock:/var/run/docker.sock:ro quay.io/vektorlab/ctop:latest";
       # Enlaza (o re-enlaza, tras añadir ficheros) los dotfiles con stow
       dots-apply = "cd ~/nix-os/dotfiles && for d in */; do stow -v -t ~ \"$d\"; done && cd -";
       dots-restore = "cd ~/nix-os/dotfiles && for d in */; do stow -v -R -t ~ \"$d\"; done && cd -";

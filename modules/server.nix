@@ -176,4 +176,80 @@ in
     ];
     allowedUDPPorts = [ 53 ];
   };
+
+  ##########################################################################
+  ## Contenedores / Virtualización — EJEMPLOS (aparcados, para el futuro)
+  ## ------------------------------------------------------------------------
+  ## (Podman solo está en los hosts que importan modules/podman.nix: hades y
+  ##  korriban — NO en common, así que hoth no lo tiene. Daemonless.)
+  ## Aquí solo dejo plantillas de servicios; los 4 encajan en NixOS (declarativos).
+  ## Descomenta el que quieras y añade su ruta en Caddy + hostname en extraHosts
+  ## + tile en Homepage. (Probado que funcionan; ahora mismo no los necesito.)
+  ##
+  ## --- 1) Podman / oci-containers ---  PARA QUÉ: software que SOLO viene como
+  ## imagen (no está en nixpkgs). Ej. Uptime Kuma (monitor "¿está vivo?"):
+  #
+  #   virtualisation.podman.enable = true;
+  #   virtualisation.oci-containers = {
+  #     backend = "podman";
+  #     containers.uptime-kuma = {
+  #       image = "louislam/uptime-kuma:1";
+  #       ports = [ "127.0.0.1:3001:3001" ];     # solo local; Caddy lo expone
+  #       volumes = [ "uptime-kuma:/app/data" ];
+  #       autoStart = true;
+  #     };
+  #   };
+  #   # (si construyes la imagen con pkgs.dockerTools: imageFile = … → sin Dockerfile)
+  #
+  ## --- 2) nixos-container (systemd-nspawn) ---  PARA QUÉ: un NixOS entero
+  ## aislado (comparte kernel), 100% declarativo. Ej. Vaultwarden (contraseñas):
+  #
+  #   containers.vault = {
+  #     autoStart = true;
+  #     privateNetwork = true;
+  #     hostAddress = "10.100.0.1"; localAddress = "10.100.0.2";
+  #     forwardPorts = [ { hostPort = 8222; containerPort = 8000; protocol = "tcp"; } ];
+  #     config = { ... }: {
+  #       services.vaultwarden = {
+  #         enable = true;
+  #         config = {
+  #           ROCKET_ADDRESS = "0.0.0.0"; ROCKET_PORT = 8000;
+  #           DOMAIN = "http://vault.${domain}"; SIGNUPS_ALLOWED = true;  # cierra a false tras crear tu cuenta
+  #         };
+  #       };
+  #       networking.firewall.allowedTCPPorts = [ 8000 ];
+  #       system.stateVersion = "25.05";
+  #     };
+  #   };
+  #
+  ## --- 3) Nativo (services.*) ---  PARA QUÉ: lo primero a probar; un módulo
+  ## NixOS sin capas. Ej. Grocy (panel de compras/despensa). Trae nginx+php
+  ## propios → muévelo a un puerto interno para no chocar con Caddy (:80):
+  #
+  #   services.grocy = {
+  #     enable = true;
+  #     hostName = "grocy.${domain}";
+  #     nginx.enableSSL = false;
+  #     settings = { currency = "EUR"; culture = "es"; };
+  #   };
+  #   services.nginx.virtualHosts."grocy.${domain}".listen = [
+  #     { addr = "127.0.0.1"; port = 8083; }
+  #   ];
+  #
+  ## --- 4) microvm.nix ---  PARA QUÉ: VM ligera con KERNEL PROPIO (KVM) =
+  ## aislamiento REAL. Solo para lo expuesto a internet / no confiable.
+  ## Requiere DOS cosas: (a) el input  inputs.microvm.url = "github:astro/microvm.nix";
+  ## y (b) importar en el host el módulo  inputs.microvm.nixosModules.host
+  ## (sin ese import, microvm.vms.* falla con "unknown option").
+  #
+  #   microvm.vms.borde = {
+  #     config = {
+  #       microvm = {
+  #         hypervisor = "cloud-hypervisor"; vcpu = 2; mem = 1024;
+  #         interfaces = [ { type = "tap"; id = "vm-borde"; mac = "02:00:00:00:00:01"; } ];
+  #       };
+  #       services.nginx.enable = true;      # el servicio a aislar
+  #       system.stateVersion = "25.05";
+  #     };
+  #   };
 }
