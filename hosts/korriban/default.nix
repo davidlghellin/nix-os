@@ -10,6 +10,7 @@
     ./hardware.nix
     ../../modules/common.nix
     ../../modules/server.nix
+    ../../modules/podman.nix
     ../../modules/media.nix
     ../../modules/gpu-amd.nix
     ../../modules/sail.nix
