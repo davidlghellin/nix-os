@@ -75,6 +75,22 @@
         '';
 
         protobuf3 = pkgs.protobuf;
+
+        # Notificación de escritorio OPCIONAL para avisar de fin de compilación
+        # y de tests. No-op si no hay notify-send → el flake sigue valiendo en
+        # máquinas headless o sin NixOS (no ata a nadie). $1=título $2=cuerpo
+        # $3=urgencia (normal|critical, def. normal).
+        sailNotify = pkgs.writeShellScript "sail-notify" ''
+          _urg="''${3:-normal}"
+          command -v notify-send >/dev/null 2>&1 && \
+            notify-send -a sail -u "$_urg" "$1" "$2" 2>/dev/null || true
+          # Sonido opcional (mismo tema que nrs-notify). No-op si no hay paplay.
+          if command -v paplay >/dev/null 2>&1; then
+            _snd=complete.oga; [ "$_urg" = critical ] && _snd=dialog-error.oga
+            paplay "${pkgs.sound-theme-freedesktop}/share/sounds/freedesktop/stereo/$_snd" \
+              >/dev/null 2>&1 &
+          fi
+        '';
       in
       {
         devShells.default = pkgs.devshell.mkShell {
@@ -225,6 +241,82 @@
                 hatch run test-ibis:bash scripts/spark-tests/run-server.sh
               '';
             }
+            {
+              category = "server";
+              name = "sail-server-main";
+              help = "Server de REFERENCIA desde upstream/main (lakehq) en :50051. Binario cacheado fuera de target/ (sobrevive a cargo clean); recompila solo si main avanzó. SAIL_MAIN_REMOTE (def. upstream), SAIL_MAIN_NO_FETCH=1 no toca la red";
+              command = ''
+                set -euo pipefail
+                trap '${sailNotify} "❌ sail-server-main falló" "revisa la terminal" critical' ERR
+                _remote="''${SAIL_MAIN_REMOTE:-upstream}"   # lakehq/sail, no tu fork (origin)
+                _cache="''${XDG_CACHE_HOME:-$HOME/.cache}/sail"
+                _wt="$_cache/worktree-main"
+                _bin="$_cache/bin/sail-main"
+                _revfile="$_bin.rev"
+                mkdir -p "$_cache/bin"
+
+                # Todo lo que toca el worktree/binario compartidos va bajo flock:
+                # serializa las actualizaciones (dos terminales no se pisan) y evita
+                # que alguien ejecute el binario mientras se está reescribiendo.
+                (
+                  ${pkgs.util-linux}/bin/flock 9
+
+                  # El worktree cacheado se creó desde un checkout concreto: valida que
+                  # sea del mismo remoto y, si no, recréalo (no servir otro repo).
+                  if [ -e "$_wt/.git" ]; then
+                    _want="$(git -C "$PRJ_ROOT" remote get-url "$_remote" 2>/dev/null || true)"
+                    _have="$(git -C "$_wt" remote get-url "$_remote" 2>/dev/null || true)"
+                    if [ -n "$_want" ] && [ "$_want" != "$_have" ]; then
+                      echo "⛵ Worktree cacheado no es de $_remote ($_have) → lo recreo."
+                      git -C "$PRJ_ROOT" worktree remove --force "$_wt" 2>/dev/null || rm -rf "$_wt"
+                    fi
+                  fi
+
+                  # Crear worktree si falta. SAIL_MAIN_NO_FETCH exige uno YA existente
+                  # (sin red no hay forma de traer main la 1ª vez → error claro).
+                  if [ ! -e "$_wt/.git" ]; then
+                    if [ -n "''${SAIL_MAIN_NO_FETCH:-}" ]; then
+                      echo "⛵ SAIL_MAIN_NO_FETCH=1 necesita un worktree ya existente en $_wt." >&2
+                      exit 1
+                    fi
+                    echo "⛵ Creando worktree de $_remote/main en $_wt…"
+                    git -C "$PRJ_ROOT" fetch "$_remote" main
+                    git -C "$PRJ_ROOT" worktree add --force --detach "$_wt" "$_remote/main"
+                  fi
+
+                  # Pon el worktree en la última main (salvo que pidas no tocar red).
+                  if [ -z "''${SAIL_MAIN_NO_FETCH:-}" ] && git -C "$_wt" fetch "$_remote" main 2>/dev/null; then
+                    git -C "$_wt" checkout -q --detach "$_remote/main"
+                  else
+                    echo "⛵ Sin fetch (offline o SAIL_MAIN_NO_FETCH): uso el worktree tal cual."
+                  fi
+                  _rev="$(git -C "$_wt" rev-parse HEAD)"
+
+                  # (Re)compila SOLO si falta el binario o main cambió. El binario vive
+                  # fuera de target/ → cargo clean en tu rama no lo borra. Publicación
+                  # ATÓMICA: build → cp a tmp → mv (rename) → rev, para que nadie vea
+                  # un binario a medias.
+                  if [ ! -x "$_bin" ] || [ "$_rev" != "$(cat "$_revfile" 2>/dev/null || true)" ]; then
+                    echo "⛵ Compilando sail-cli (release) desde main $_rev…"
+                    ( cd "$_wt" && cargo build --release -p sail-cli )
+                    cp -f "$_wt/target/release/sail" "$_bin.tmp.$$"
+                    mv -f "$_bin.tmp.$$" "$_bin"
+                    echo "$_rev" > "$_revfile"
+                    echo "⛵ Binario de referencia listo: $_bin"
+                  else
+                    echo "⛵ Binario de main al día ($_rev). Sin recompilar."
+                  fi
+                ) 9>"$_cache/update.lock"
+
+                # Lock liberado ya (no bloquear a otros mientras el server corre).
+                _rev="$(cat "$_revfile" 2>/dev/null || true)"
+                ${sailNotify} "⚙️ referencia main lista" "commit $_rev — sirviendo :50051"
+                echo "⛵ Server de REFERENCIA (main) en sc://localhost:50051 — Ctrl-C para parar."
+                exec env RUST_LOG="''${RUST_LOG:-sail=info}" \
+                  SAIL_EXECUTION__DEFAULT_PARALLELISM="''${SAIL_EXECUTION__DEFAULT_PARALLELISM:-4}" \
+                  "$_bin" spark server --port 50051 "$@"
+              '';
+            }
 
             {
               category = "test";
@@ -235,8 +327,27 @@
             {
               category = "test";
               name = "sail-test-feature";
-              help = "Run pytest BDD feature tests against Sail server on :50051";
-              command = ''export SPARK_REMOTE="''${SPARK_REMOTE:-sc://localhost:50051}" && hatch run pytest python/pysail/tests/spark/function/test_features.py "$@"'';
+              help = "Feature BDD tests con server EMBEBIDO (sin :50051 ni sail-server). Compila pysail; SAIL_SKIP_BUILD=1 lo salta";
+              command = ''
+                set -u
+                if [ -z "''${SAIL_SKIP_BUILD:-}" ]; then
+                  if hatch run maturin develop; then
+                    ${sailNotify} "⚙️ pysail compilado" "feature tests"
+                  else
+                    ${sailNotify} "❌ pysail: fallo al compilar" "sail-test-feature" critical
+                    exit 1
+                  fi
+                fi
+                unset SPARK_REMOTE   # → server embebido del conftest
+                hatch run pytest python/pysail/tests/spark/function/test_features.py "$@"
+                _s=$?
+                if [ "$_s" -eq 0 ]; then
+                  ${sailNotify} "✅ feature tests OK" "$*"
+                else
+                  ${sailNotify} "❌ feature tests fallaron ($_s)" "$*" critical
+                fi
+                exit "$_s"
+              '';
             }
             {
               category = "test";
@@ -326,8 +437,38 @@
             {
               category = "test";
               name = "sail-pytest";
-              help = "Run pytest against Sail server (set SPARK_REMOTE for you)";
+              help = "Run pytest against a running Sail server on :50051 (needs sail-server; sets SPARK_REMOTE for you)";
               command = ''export SPARK_REMOTE="sc://localhost:50051" && hatch run pytest "$@"'';
+            }
+            {
+              category = "test";
+              name = "sail-pytest-solo";
+              help = "pytest AUTOCONTENIDO: compila pysail y arranca su propio Spark Connect (sin sail-server ni :50051). SAIL_SKIP_BUILD=1 salta el build";
+              command = ''
+                set -u
+                # Sin SPARK_REMOTE, el conftest (spark_connect_server) arranca su
+                # PROPIO servidor embebido en un puerto libre vía
+                # pysail.spark.SparkConnectServer → no hace falta `sail-server`.
+                # Para eso pysail nativo tiene que estar en el venv, de ahí el
+                # `maturin develop` (incremental: solo recompila lo que cambió).
+                if [ -z "''${SAIL_SKIP_BUILD:-}" ]; then
+                  if hatch run maturin develop; then
+                    ${sailNotify} "⚙️ pysail compilado" "listo para tests"
+                  else
+                    ${sailNotify} "❌ pysail: fallo al compilar" "sail-pytest-solo" critical
+                    exit 1
+                  fi
+                fi
+                unset SPARK_REMOTE   # por si viene puesto del shell/.envrc
+                hatch run pytest "$@"
+                _s=$?
+                if [ "$_s" -eq 0 ]; then
+                  ${sailNotify} "✅ tests OK" "sail-pytest-solo $*"
+                else
+                  ${sailNotify} "❌ tests fallaron ($_s)" "sail-pytest-solo $*" critical
+                fi
+                exit "$_s"
+              '';
             }
           ];
 
