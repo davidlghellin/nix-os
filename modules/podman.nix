@@ -14,13 +14,30 @@
     dockerCompat = true;      # deja el comando `docker` como alias de podman
     dockerSocket.enable = true;  # /run/docker.sock rootful (socket-activated)
 
-    # Limpieza automática (1×/semana): borra imágenes/contenedores/volúmenes
-    # colgados para que no se acumule basura en disco. Un timer, sin mantenimiento.
+    # Limpieza automática ROOTFUL (1×/semana): purga el almacén de podman de
+    # ROOT. Los contenedores que usas tú son ROOTLESS (ver DOCKER_HOST abajo) →
+    # esos los limpia el timer de usuario de más abajo, no este.
     autoPrune = {
       enable = true;
       dates = "weekly";
       flags = [ "--all" ];
     };
+  };
+
+  # Limpieza ROOTLESS (1×/semana) del almacén de podman de cada usuario — es el
+  # que de verdad llena disco, porque docker/lazydocker apuntan al socket
+  # rootless. Purga imágenes/contenedores/redes colgados (NO volúmenes → no
+  # borra datos como pgdata).
+  systemd.user.services.podman-prune = {
+    description = "Prune rootless de podman (imágenes/contenedores/redes colgados)";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.podman}/bin/podman system prune -af";
+    };
+  };
+  systemd.user.timers.podman-prune = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = { OnCalendar = "weekly"; Persistent = true; };
   };
 
   # Herramientas que hablan "docker" apuntan al socket ROOTLESS de podman del

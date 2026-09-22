@@ -180,7 +180,8 @@ in
   ##########################################################################
   ## Contenedores / Virtualización — EJEMPLOS (aparcados, para el futuro)
   ## ------------------------------------------------------------------------
-  ## (Podman ya está disponible en todo el parque vía common.nix — daemonless.)
+  ## (Podman solo está en los hosts que importan modules/podman.nix: hades y
+  ##  korriban — NO en common, así que hoth no lo tiene. Daemonless.)
   ## Aquí solo dejo plantillas de servicios; los 4 encajan en NixOS (declarativos).
   ## Descomenta el que quieras y añade su ruta en Caddy + hostname en extraHosts
   ## + tile en Homepage. (Probado que funcionan; ahora mismo no los necesito.)
@@ -237,7 +238,9 @@ in
   #
   ## --- 4) microvm.nix ---  PARA QUÉ: VM ligera con KERNEL PROPIO (KVM) =
   ## aislamiento REAL. Solo para lo expuesto a internet / no confiable.
-  ## Requiere el input:  inputs.microvm.url = "github:astro/microvm.nix";
+  ## Requiere DOS cosas: (a) el input  inputs.microvm.url = "github:astro/microvm.nix";
+  ## y (b) importar en el host el módulo  inputs.microvm.nixosModules.host
+  ## (sin ese import, microvm.vms.* falla con "unknown option").
   #
   #   microvm.vms.borde = {
   #     config = {
