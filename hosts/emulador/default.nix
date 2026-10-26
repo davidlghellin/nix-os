@@ -120,7 +120,17 @@
     ];
   };
 
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      # SSH por contraseña a propósito (se usa para copiar ROMs y deployar).
+      # El riesgo de "contraseña conocida" se mitiga cambiándola con `passwd`
+      # tras el primer login — `initialPassword` solo siembra la primera.
+      PasswordAuthentication = true;
+      # Nunca se entra como root por SSH (se usa `wizord` + sudo).
+      PermitRootLogin = "no";
+    };
+  };
   services.getty.helpLine = ''
     IP: \4
   '';

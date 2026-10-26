@@ -57,33 +57,36 @@ let
     exec ${retroarch}/bin/retroarch --appendconfig=${retroarchCfg}
   '';
 
-  # Genera las playlists de RetroArch (.lpl) desde ~/roms/<consola>/. Cada
+  # Home FIJO: no depender de $HOME (en unidades systemd con User= puede no
+  # estar exportado → escribiría en /.config o vigilaría /roms).
+  home = "/home/wizord";
+
+  # Genera las playlists de RetroArch (.lpl) desde <home>/roms/<consola>/. Cada
   # consola → su core. El servicio de abajo lo ejecuta al arrancar y cada vez
   # que cambias algo en ~/roms → los juegos que copias por SSH aparecen SOLOS
   # en la lista del menú (tipo consola, sin escanear a mano).
+  #
+  # El JSON se arma con `jq` (no concatenando strings): así un ROM con comillas,
+  # backslashes o caracteres raros NO rompe la playlist.
   coreDir = "${retroarch}/lib/retroarch/cores";
   updatePlaylists = pkgs.writeShellScript "emulador-playlists" ''
     set -eu
-    roms="$HOME/roms"; pl="$HOME/.config/retroarch/playlists"
+    roms="${home}/roms"; pl="${home}/.config/retroarch/playlists"
     mkdir -p "$pl"
     gen() { # $1=carpeta $2=core.so $3=nombre-core $4=nombre-playlist
       local dir="$roms/$1" core="${coreDir}/$2" name="$3" out="$pl/$4.lpl"
       [ -d "$dir" ] || return 0
-      local items="" first=1 f label
+      local items="[]" f label
       for f in "$dir"/*; do
         [ -f "$f" ] || continue
         label="$(basename "$f")"; label="''${label%.*}"
-        [ "$first" -eq 1 ] || items="$items,
-"
-        first=0
-        items="$items    { \"path\": \"$f\", \"label\": \"$label\", \"core_path\": \"$core\", \"core_name\": \"$name\", \"crc32\": \"\", \"db_name\": \"$4.lpl\" }"
+        items="$(printf '%s' "$items" | ${pkgs.jq}/bin/jq \
+          --arg path "$f" --arg label "$label" --arg core "$core" \
+          --arg name "$name" --arg db "$4.lpl" \
+          '. + [{path:$path,label:$label,core_path:$core,core_name:$name,crc32:"",db_name:$db}]')"
       done
-      {
-        printf '{\n  "version": "1.5",\n'
-        printf '  "default_core_path": "%s",\n' "$core"
-        printf '  "default_core_name": "%s",\n' "$name"
-        printf '  "items": [\n%s\n  ]\n}\n' "$items"
-      } > "$out"
+      ${pkgs.jq}/bin/jq -n --arg core "$core" --arg name "$name" --argjson items "$items" \
+        '{version:"1.5",default_core_path:$core,default_core_name:$name,items:$items}' > "$out"
     }
     gen megadrive    genesis_plus_gx_libretro.so "Genesis Plus GX" "Sega - Mega Drive - Genesis"
     gen mastersystem genesis_plus_gx_libretro.so "Genesis Plus GX" "Sega - Master System - Mark III"
@@ -161,12 +164,20 @@ in
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       User = "wizord";
-      Restart = "always";
-      RestartSec = 2;
+      Group = "users";
+      # HOME explícito: en unidades con User= no siempre se exporta.
+      Environment = "HOME=${home}";
+      Restart = "on-failure";
+      RestartSec = 5;
+      # Bucle infinito robusto: si inotifywait falla, espera y reintenta (no
+      # sale del servicio ni entra en bucle de reinicios de systemd).
       ExecStart = pkgs.writeShellScript "emulador-playlists-watch" ''
-        ${updatePlaylists}
-        while ${pkgs.inotify-tools}/bin/inotifywait -r -e create,delete,moved_to,moved_from,close_write "$HOME/roms" >/dev/null 2>&1; do
-          ${updatePlaylists}
+        ${updatePlaylists} || true
+        while true; do
+          ${pkgs.inotify-tools}/bin/inotifywait -r \
+            -e create,delete,moved_to,moved_from,close_write "${home}/roms" \
+            >/dev/null 2>&1 || sleep 5
+          ${updatePlaylists} || true
         done
       '';
     };
