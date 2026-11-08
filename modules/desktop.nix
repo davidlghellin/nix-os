@@ -484,7 +484,7 @@ in
     python3
     hatch
     maturin
-    vscode-fhs
+    unstable.vscode-fhs
     meld
     dbeaver-bin
     zathura
@@ -496,7 +496,7 @@ in
     keepassxc                     # gestor de contraseñas local (.kdbx)
 
     ## Desde unstable para tener siempre la última versión
-    unstable.brave
+    # unstable.brave              # retirado de nixpkgs (seguridad sin mantenedores)
     unstable.firefox
     unstable.librewolf
     unstable.proton-vpn

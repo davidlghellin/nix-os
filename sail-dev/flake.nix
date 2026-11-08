@@ -502,12 +502,11 @@
           devshell.startup.sail-shell.text = ''
             unset PYTHONHOME
 
-            # Deja 2 cores libres al compilar/testear (con todos los cores + RAM
-            # al tope el escritorio se congela). Adaptativo. A tope si estás AFK:
-            #   CARGO_BUILD_JOBS=$(nproc) cargo build
-            # Comodidad local; no lo lleves al PR.
-            _ncpu=$(nproc 2>/dev/null || echo 4)
-            _jobs=$(( _ncpu > 2 ? _ncpu - 2 : 1 ))
+            # Tope de 4 jobs al compilar/testear (con varios agentes/worktrees
+            # compilando a la vez, todos los cores + RAM al tope congelan la
+            # máquina). Es por proceso, no global. Más si estás AFK:
+            #   SAIL_JOBS=8 (al entrar al shell)  o  CARGO_BUILD_JOBS=8 cargo build
+            _jobs="''${SAIL_JOBS:-4}"
             export CARGO_BUILD_JOBS="$_jobs"
             export NEXTEST_TEST_THREADS="$_jobs"
 
