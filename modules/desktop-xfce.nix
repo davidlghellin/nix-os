@@ -47,7 +47,7 @@
   ## Programas
   ##########################################################################
   environment.systemPackages = with pkgs; [
-    unstable.brave               # mismos navegadores que desktop.nix, de unstable
+    # unstable.brave             # retirado de nixpkgs; mismos navegadores que desktop.nix, de unstable
     unstable.librewolf
     libreoffice-still
     hunspellDicts.es_ES          # corrector de LibreOffice en español
